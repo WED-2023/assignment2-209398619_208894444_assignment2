@@ -19,24 +19,64 @@
     </nav>
 
     <main>
-        <div id="welcome" class="screen">
-            <!--Welcome content with two buttons: register / login-->
+        <!--Welcome content with two buttons: register / login-->
+        <div id="welcome" class="screen active">
+            <h2>Welcome to Galactic Defenders!</h2>
+            <p>By: Raz Ganon 208894444 & Keren Londner 209398619</p>
+            <button onclick="showScreen('register')">Register</button>
+            <button onclick="showScreen('login')">Login</button>
         </div>
 
+        <!--register screen-->
         <div id="register" class="screen">
-            <!--register screen-->
+            <h2>Register</h2>
+            <form id="registrationForm">
+                <input type="text" placeholder="Username" id="regUsername" required />
+                <input type="password" placeholder="Password" id="regPassword" required />
+                <input type="password" placeholder="Confirm Password" id="regConfirm" required />
+                <input type="text" placeholder="First Name" id="regFirstName" required />
+                <input type="text" placeholder="Last Name" id="regLastName" required />
+                <input type="text" placeholder="Email" id="regEmail" required />
+                <label>Date of Birth:</label>
+                <select id="regDay"></select>
+                <select id="regMonth"></select>
+                <select id="regYear"></select>
+                <button type="submit">Register</button>
+            </form>
         </div>
 
+        <!--login screen-->
         <div id="login" class="screen">
-            <!--login screen-->
+            <h2>Login</h2>
+            <form id="loginForm">
+              <input type="text" placeholder="Username" id="loginUsername" required />
+              <input type="password" placeholder="Password" id="loginPassword" required />
+              <button type="submit">Login</button>
+            </form>
+            <p id="loginError" class="error"></p>
         </div>
 
+        <!-- Configuration Screen -->
         <div id="config" class="screen">
-            <!--game config-->
+            <h2>Game Configuration</h2>
+            <label for="shootKey">Select shoot key:</label>
+            <input type="text" id="shootKey" maxlength="1" required />
+  
+            <label for="gameTime">Game Time (minutes):</label>
+            <input type="number" id="gameTime" min="2" value="2" required />
+  
+            <!-- Extra options can be added here -->
+            <button id="startGameBtn">Start Game</button>
         </div>
 
         <div id="game" class="screen">
             <canvas id="gameCanvas" width="1366" height="768"></canvas>
+            <div id="hud">
+                <span id="score">Score: 0</span>
+                <span id="score">Lives: 3</span>
+                <span id="score">Time Left: 120</span>
+
+            </div>
         </div>
     </main>
         <footer>
