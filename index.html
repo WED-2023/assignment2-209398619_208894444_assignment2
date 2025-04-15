@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cannon Game SISE</title>
+    <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <header>
+        <h1>Galactic Defenders</h1>
+        <img src ="assets/images/logo.png" alt="Game Logo">
+    </header>
+    <nav>
+        <button onclick="showScreen('welcome')">Welcome</button>
+        <button onclick="showScreen('about')">About</button>
+        <button onclick="showScreen('login')">Login</button>
+    </nav>
+
+    <main>
+        <div id="welcome" class="screen">
+            <!--Welcome content with two buttons: register / login-->
+        </div>
+
+        <div id="register" class="screen">
+            <!--register screen-->
+        </div>
+
+        <div id="login" class="screen">
+            <!--login screen-->
+        </div>
+
+        <div id="config" class="screen">
+            <!--game config-->
+        </div>
+
+        <div id="game" class="screen">
+            <canvas id="gameCanvas" width="1366" height="768"></canvas>
+        </div>
+    </main>
+        <footer>
+            <p>Created by: Raz Ganon & Keren Londner | Contact: ganonr@post.bgu.ac.il / kerenlon@post.bgu.ac.il</p>
+        </footer>
+
+        <!-- Modal for about information-->
+        <div id="about-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <p>Names, template use, difficulties, etc.</p>
+            </div>
+        </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
