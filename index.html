@@ -1,96 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Cannon Game SISE</title>
-    <link rel="stylesheet" href="styles.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <title>Spaceship Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <header>
-        <h1>Galactic Defenders</h1>
-        <img src ="assets/images/logo.png" alt="Game Logo">
-    </header>
-    <nav>
-        <button onclick="showScreen('welcome')">Welcome</button>
-        <button onclick="showScreen('about')">About</button>
+
+  <!-- HEADER -->
+  <header>
+    <h1>Spaceship Game</h1>
+    <img src="assets/startScreenBackground.png" alt="Logo" class="logo">
+  </header>
+
+  <!-- MENU -->
+  <nav>
+    <button onclick="showScreen('welcome')">Home</button>
+    <button onclick="openModal()">About</button>
+    <button onclick="startNewGame()">New Game</button>
+  </nav>
+
+  <!-- MAIN SCREENS -->
+  <main>
+    
+    <!-- WELCOME SCREEN -->
+    <div id="welcome" class="screen active">
+      <h2>Welcome to our game!</h2>
+      <p>Created by Raz Ganon & Keren Londner</p>
+      <div class="action-buttons">
+        <button onclick="showScreen('register')">Register</button>
         <button onclick="showScreen('login')">Login</button>
-    </nav>
+      </div>      
+    </div>
 
-    <main>
-        <!--Welcome content with two buttons: register / login-->
-        <div id="welcome" class="screen active">
-            <h2>Welcome to Galactic Defenders!</h2>
-            <p>By: Raz Ganon 208894444 & Keren Londner 209398619</p>
-            <button onclick="showScreen('register')">Register</button>
-            <button onclick="showScreen('login')">Login</button>
-        </div>
+    <!-- REGISTER SCREEN -->
+    <div id="register" class="screen">
+      <h2>Register</h2>
+      <form onsubmit="return registerUser(event)">
+        <input type="text" id="regUsername" placeholder="Username" required />
+        <input type="password" id="regPassword" placeholder="Password" required />
+        <input type="password" id="verifyPassword" placeholder="Verify Password" required />
+        <input type="text" id="firstName" placeholder="First Name" required />
+        <input type="text" id="lastName" placeholder="Last Name" required />
+        <input type="email" id="email" placeholder="Email" required />
+        <label>Date of Birth:</label>
+        <select id="dobYear"></select>
+        <select id="dobMonth"></select>
+        <select id="dobDay"></select>
+        <button type="submit">Submit</button>
+      </form>
+      <p id="registerMsg"></p>
+    </div>
 
-        <!--register screen-->
-        <div id="register" class="screen">
-            <h2>Register</h2>
-            <form id="registrationForm">
-                <input type="text" placeholder="Username" id="regUsername" required />
-                <input type="password" placeholder="Password" id="regPassword" required />
-                <input type="password" placeholder="Confirm Password" id="regConfirm" required />
-                <input type="text" placeholder="First Name" id="regFirstName" required />
-                <input type="text" placeholder="Last Name" id="regLastName" required />
-                <input type="text" placeholder="Email" id="regEmail" required />
-                <label>Date of Birth:</label>
-                <select id="regDay"></select>
-                <select id="regMonth"></select>
-                <select id="regYear"></select>
-                <button type="submit">Register</button>
-            </form>
-        </div>
+    <!-- LOGIN SCREEN -->
+    <div id="login" class="screen">
+      <h2>Login</h2>
+      <form onsubmit="return loginUser(event)">
+        <input type="text" id="loginUsername" placeholder="Username" required />
+        <input type="password" id="loginPassword" placeholder="Password" required />
+        <button type="submit">Login</button>
+      </form>
+      <p id="loginMsg"></p>
+    </div>
 
-        <!--login screen-->
-        <div id="login" class="screen">
-            <h2>Login</h2>
-            <form id="loginForm">
-              <input type="text" placeholder="Username" id="loginUsername" required />
-              <input type="password" placeholder="Password" id="loginPassword" required />
-              <button type="submit">Login</button>
-            </form>
-            <p id="loginError" class="error"></p>
-        </div>
+    <!-- CONFIGURATION SCREEN -->
+    <div id="config" class="screen">
+      <h2>Game Configuration</h2>
 
-        <!-- Configuration Screen -->
-        <div id="config" class="screen">
-            <h2>Game Configuration</h2>
-            <label for="shootKey">Select shoot key:</label>
-            <input type="text" id="shootKey" maxlength="1" required />
-  
-            <label for="gameTime">Game Time (minutes):</label>
-            <input type="number" id="gameTime" min="2" value="2" required />
-  
-            <!-- Extra options can be added here -->
-            <button id="startGameBtn">Start Game</button>
-        </div>
+      <label for="shootKey">Choose shooting key:</label>
+      <select id="shootKey">
+        <option value=" ">Space</option>
+        <script>
+          // Dynamically add all letter options (A-Z)
+          for (let i = 65; i <= 90; i++) {
+            const letter = String.fromCharCode(i);
+            document.write(`<option value="${letter}">${letter}</option>`);
+          }
+        </script>
+      </select>
 
-        <div id="game" class="screen">
-            <canvas id="gameCanvas" width="1366" height="768"></canvas>
-            <div id="hud">
-                <span id="score">Score: 0</span>
-                <span id="score">Lives: 3</span>
-                <span id="score">Time Left: 120</span>
+      <br><br>
 
-            </div>
-        </div>
-    </main>
-        <footer>
-            <p>Created by: Raz Ganon & Keren Londner | Contact: ganonr@post.bgu.ac.il / kerenlon@post.bgu.ac.il</p>
-        </footer>
+      <label for="gameTime">Game Time (min):</label>
+      <input type="number" id="gameTime" min="2" value="2" />
 
-        <!-- Modal for about information-->
-        <div id="about-modal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <p>Names, template use, difficulties, etc.</p>
-            </div>
-        </div>
+      <br><br>
 
-    <script src="script.js"></script>
+      <label for="playerColor">Player Color:</label>
+      <input type="color" id="playerColor" value="#aa00ff" />
+      <button onclick="startConfiguredGame()">Start Game</button>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="game" class="screen">
+      <canvas id="gameCanvas" width="1366" height="768"></canvas>
+      <div id="gameUI">
+        <p id="score">Score: 0</p>
+        <p id="lives">Lives: 3</p>
+        <p id="timer">Time Left: 00</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>Spaceship Game &copy; 2025 | Raz Ganon & Keren Londner | Contact: razandkeren@example.com</p>
+  </footer>
+
+  <!-- ABOUT MODAL -->
+  <div id="aboutModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2>About the Project</h2>
+      <p><strong>Creators:</strong> Raz Ganon & Keren Londner</p>
+      <p><strong>Template Used:</strong> No</p>
+      <p><strong>jQuery Plugin Used:</strong> No</p>
+      <p><strong>Difficulties:</strong> Managing multiple game states and synchronizing canvas logic with UI-based screens</p>
+      <p><strong>Game Instructions:</strong></p>
+      <ul>
+        <li>Use arrow keys to move</li>
+        <li>Use configured key to shoot</li>
+        <li>Score based on row of enemy hit</li>
+        <li>3 hits and you're out!</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- AUDIO ELEMENTS -->
+  <audio id="backgroundMusic" loop preload="auto">
+    <source src="assets/sounds/backgroundMusic.wav" type="audio/mpeg" />
+  </audio>
+  <audio id="bomb" src="assets/sounds/bomb.mp3" preload="auto"></audio>
+  <audio id="bonus" src="assets/sounds/bonus.mp3" preload="auto"></audio>
+  <audio id="enemyShoot" src="assets/sounds/enemyShoot.wav" preload="auto"></audio>
+  <audio id="explode" src="assets/sounds/explode.wav" preload="auto"></audio>
+  <audio id="gameOver" src="assets/sounds/gameOver.mp3" preload="auto"></audio>
+  <audio id="select" src="assets/sounds/select.mp3" preload="auto"></audio>
+  <audio id="shoot" src="assets/sounds/shoot.wav" preload="auto"></audio>
+  <audio id="start" src="assets/sounds/start.mp3" preload="auto"></audio>
+
+  <!-- SCRIPT -->
+  <script src="script.js"></script>
 </body>
 </html>
