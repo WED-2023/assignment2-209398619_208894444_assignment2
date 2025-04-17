@@ -1,62 +1,212 @@
+/* General Reset and Page Setup */
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    background: black;
-    color: white;
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #000;
+  color: white;
+  overflow-x: hidden;
+  min-width: 1366px;
+  min-height: 768px;
+}
+
+h1, h2, p {
+  margin: 10px;
+}
+
+/* Header */
+header {
+  background-color: #111;
+  text-align: center;
+  padding: 20px;
+  border-bottom: 2px solid #333;
+}
+
+.logo {
+  width: 150px;
+  margin-top: 10px;
+}
+
+/* Navigation */
+nav {
+  background-color: #1e1e1e;
+  padding: 10px;
+  text-align: center;
+}
+
+nav button {
+  background-color: #000;
+  color: white;
+  border: 2px solid #00ffff;
+  padding: 10px 20px;
+  margin: 0 10px;
+  font-size: 16px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px #00ffff;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+nav button:hover {
+  border-color: #00ff66;
+  box-shadow: 0 0 12px #00ff66, 0 0 20px #00ff66;
+  background-color: #111;
+}
+
+/* Screens */
+.screen {
+  display: none;
+  padding: 30px;
+  text-align: center;
+}
+
+.screen.active {
+  display: block;
+}
+
+.action-buttons {
+  margin-top: 20px;
+}
+
+.action-buttons button {
+  background-color: #000;
+  color: white;
+  border: 2px solid #00ffff;
+  padding: 10px 20px;
+  margin: 10px;
+  font-size: 16px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px #00ffff;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.action-buttons button:hover {
+  border-color: #00ff66;
+  box-shadow: 0 0 12px #00ff66, 0 0 20px #00ff66;
+  background-color: #111;
+}
+
+
+/* Forms */
+form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+input, select {
+  padding: 12px 16px;
+  margin: 8px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  width: 200px;
+}
+
+form button {
+  background-color: #00ffff;
+  border: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  color: black;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 0 8px #00ffff;
+  transition: 0.3s ease;
+}
+
+form button:hover {
+  background-color: #00ff66;
+  box-shadow: 0 0 12px #00ff66, 0 0 20px #00ff66;
+}
+
+/* Canvas and Game UI */
+#gameCanvas {
+  background-image: url("assets/startScreenBackground.png");
+  background-size: cover;
+  display: block;
+  margin: 0 auto;
+  border: 2px solid #333;
+  box-shadow: 0 0 12px #00f;
+}
+
+#gameUI {
+  position: absolute;
+  top: 100px;
+  left: 50px;
+  font-size: 20px;
+  color: #fff;
+  text-align: left;
+}
+
+#gameUI p {
+  margin: 10px 0;
+}
+
+/* Modal Styling */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+  background-color: #222;
+  color: white;
+  margin: 10% auto;
+  padding: 20px 30px;
+  border: 2px solid #555;
+  border-radius: 8px;
+  width: 50%;
+  position: relative;
+}
+
+.close {
+  color: white;
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.modal-content ul {
+  text-align: left;
+  padding-left: 20px;
+}
+
+/* Footer */
+footer {
+  background-color: #111;
+  color: #888;
+  text-align: center;
+  padding: 15px;
+  position: relative;
+  bottom: 0;
+  width: 100%;
+  border-top: 2px solid #333;
+}
+
+/* Responsive Elements */
+@media (max-width: 1440px) {
+  nav button {
+    font-size: 14px;
+    padding: 8px 16px;
   }
-  
-  header, footer, nav {
-    text-align: center;
-    padding: 1em;
-    background-color: #222;
-  }
-  
-  #logo {
-    width: 100px;
-    margin-top: 10px;
-  }
-  
-  .screen {
-    display: none;
-    padding: 2em;
-  }
-  
-  .screen.active {
-    display: block;
-  }
-  
-  canvas {
-    background: #111;
-    display: block;
-    margin: 0 auto;
-    border: 2px solid white;
-  }
-  
-  #hud {
-    display: flex;
-    justify-content: space-around;
-    padding: 1em;
-  }
-  
-  .modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.7);
-  }
-  
+
   .modal-content {
-    margin: 10% auto;
-    background: #fff;
-    color: #000;
-    padding: 20px;
-    width: 50%;
+    width: 70%;
   }
-  
-  .close {
-    float: right;
-    cursor: pointer;
-    font-size: 24px;
+
+  #gameUI {
+    left: 20px;
+    top: 80px;
   }
-  
+}
