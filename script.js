@@ -26,6 +26,7 @@ let isPaused = false;
 let canShoot = true; 
 let playerImage, enemyImage;
 let movementBoundary; // For restricting player to bottom 40%
+let currentScore;
 
 // =====================
 // Screen Navigation
@@ -33,15 +34,21 @@ let movementBoundary; // For restricting player to bottom 40%
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(div => div.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  currentScreen = id;
   
-  // Stop background music when returning to welcome screen
-  if (id === "welcome") {
-    stopSound("backgroundMusic");
+  // Stop all sounds when changing screens
+  if (id !== "game") {
+    stopAllSounds();
   }
   
   // Play selection sound if not on welcome screen
   if (id !== "welcome") {
     playSound("select");
+  }
+  
+  // Start background music only when entering the game screen
+  if (id === "game") {
+    playSound("backgroundMusic");
   }
 }
 
@@ -49,12 +56,15 @@ function openModal() {
   document.getElementById("aboutModal").style.display = "block";
   playSound("select");
 }
+
 function closeModal() {
   document.getElementById("aboutModal").style.display = "none";
 }
+
 window.onclick = e => {
   if (e.target === document.getElementById("aboutModal")) closeModal();
 };
+
 window.onkeydown = e => {
   if (e.key === "Escape") closeModal();
 };
@@ -66,15 +76,32 @@ function playSound(id) {
   const sound = document.getElementById(id);
   if (sound) {
     sound.currentTime = 0;
+    
+    // Set volume for background music
+    if (id === "backgroundMusic") {
+      sound.volume = 0.4;
+      sound.loop = true;
+    }
+    
     sound.play().catch(e => console.log("Audio play error:", e));
   }
 }
+
 function stopSound(id) {
   const sound = document.getElementById(id);
   if (sound && !sound.paused) {
     sound.pause();
     sound.currentTime = 0;
   }
+}
+
+function stopAllSounds() {
+  // Find all audio elements on the page and stop them
+  const allAudioElements = document.querySelectorAll('audio');
+  allAudioElements.forEach(audio => {
+    audio.pause();
+    audio.currentTime = 0;
+  });
 }
 
 // =====================
@@ -157,14 +184,6 @@ function startConfiguredGame() {
   config.enemyColor = document.getElementById("enemyColor").value || "#ff3333";
   
   playSound("start");
-  
-  // Start background music
-  const bgMusic = document.getElementById("backgroundMusic");
-  if (bgMusic) {
-    bgMusic.volume = 0.4; // Lower volume a bit
-    bgMusic.play().catch(e => console.log("BGM play error:", e));
-  }
-  
   initGame();
 }
 
@@ -189,8 +208,7 @@ function initGame() {
     x: Math.random() * (canvas.width - 60),
     y: canvas.height * 0.65,
     w: 60, h: 40,
-    speed: 6,
-    
+    speed: 6
   };
 
   bullets = [];
@@ -215,6 +233,15 @@ function initGame() {
 function createEnemies() {
   // Create 20 enemies in a 4x5 formation
   const rows = 4, cols = 5, spacing = 80, startX = 300, startY = 80;
+  
+  // הגדרת צבעים שונים לכל שורה
+  const rowColors = [
+    "#ff0000", 
+    "#ffff00", 
+    "#00ff00", 
+    "#0099ff"  
+  ];
+  
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       enemies.push({
@@ -222,7 +249,8 @@ function createEnemies() {
         y: startY + r * spacing,
         w: 50, h: 30,
         alive: true,
-        row: r // Store the row for scoring
+        row: r, 
+        color: rowColors[r] 
       });
     }
   }
@@ -289,9 +317,40 @@ function drawPlayer() {
 function drawEnemies() {
   enemies.forEach(enemy => {
     if (enemy.alive) {
-      ctx.drawImage(enemyImage, enemy.x, enemy.y, enemy.w, enemy.h);
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCanvas.width = enemy.w;
+      tempCanvas.height = enemy.h;
+     
+      tempCtx.drawImage(enemyImage, 0, 0, enemy.w, enemy.h);
+     
+      const imageData = tempCtx.getImageData(0, 0, enemy.w, enemy.h);
+      const data = imageData.data;
+      
+      const targetColor = hexToRgb(enemy.color);
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i+3] > 0) {
+          if (data[i] > 30 || data[i+1] > 30 || data[i+2] > 30) {
+            data[i] = targetColor.r;     
+            data[i+1] = targetColor.g;   
+            data[i+2] = targetColor.b;   
+          }
+        }
+      }
+      tempCtx.putImageData(imageData, 0, 0);
+      ctx.drawImage(tempCanvas, enemy.x, enemy.y, enemy.w, enemy.h);
     }
   });
+}
+
+function hexToRgb(hex) {
+  hex = hex.replace(/^#/, '');
+  let bigint = parseInt(hex, 16);
+  return {
+    r: (bigint >> 16) & 255,
+    g: (bigint >> 8) & 255,
+    b: bigint & 255
+  };
 }
 
 function drawBullets() {
@@ -465,18 +524,35 @@ function checkCollisions() {
 window.addEventListener("keydown", (e) => {
   keys[e.key] = true;
 
-  if (currentScreen !== "game") return; 
-
   if (e.key === "Home") {
+    // Stop the game loop
     gameRunning = false;
+    
+    // Clear timer interval
     clearInterval(timerInterval);
-    stopSound("backgroundMusic"); // Ensure music stops when going to home
+    
+    // Stop all sounds
+    stopAllSounds(); 
+    
+    // Go back to welcome screen
     showScreen("welcome");
   }
 });
 
 window.addEventListener("keyup", (e) => {
   keys[e.key] = false;
+});
+
+window.addEventListener("keydown", function(e) {
+  if(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", " "].includes(e.key)) {
+    e.preventDefault();
+  }
+});
+
+window.addEventListener("keypress", function(e) {
+  if(e.key === " " || e.code === "Space") {
+    e.preventDefault();
+  }
 });
 
 // =====================
@@ -487,8 +563,8 @@ function endGame(reason) {
   gameRunning = false;
   clearInterval(timerInterval);
 
-  // Ensure background music stops
-  stopSound("backgroundMusic");
+  // Stop all sounds including background music
+  stopAllSounds();
 
   let message = "";
   if (reason === "death") {
@@ -515,23 +591,24 @@ function endGame(reason) {
     currentScore = score;
   }
 }
+
 function showHighScores() {
   const scores = userScores[currentUser] || [];
   const sorted = [...scores].sort((a, b) => b - a);
   const pos = sorted.indexOf(currentScore) + 1;
 
-  showGameNotification("High Scores:\n" + sorted.slice(0, 5).join("\n") + `\nYour position: ${pos}`);
+  showGameNotification(`High Scores:\n${sorted.slice(0, 5).join("\n")}\nYour position: ${pos}`);
   setTimeout(() => {
     showScreen("welcome");
   }, 100);
 }
+
 function showGameNotification(message) {
   const notification = document.getElementById("gameNotification");
   const messageElement = document.getElementById("notificationMessage");
   
   messageElement.innerHTML = message.replace(/\n/g, '<br>');
   
-
   notification.style.display = "flex";
 }
 
@@ -552,8 +629,6 @@ function startNewGame() {
   }
   showScreen("config");
 }
-
-let currentScore;
 
 // =====================
 // Function to populate the date dropdowns (Day, Month, Year)
@@ -593,39 +668,15 @@ document.addEventListener('DOMContentLoaded', populateDateDropdowns);
 // Restart & Game Over
 // =====================
 function restartGame() {
+  // Stop all sounds before restarting
+  stopAllSounds();
+  
   player.x = canvas.width / 2 - 30;
   player.y = canvas.height * 0.65;
   initGame();
 }
 
-function stopAllSounds() {
-  // Stop background music
-  stopSound("backgroundMusic");
-  
-  // Stop all game sound effects
-  stopSound("shoot");
-  stopSound("enemyShoot");
-  stopSound("explode");
-  stopSound("bomb");
-  stopSound("bonus");
-  stopSound("select");
-}
-
-// Then modify your keydown event listener
-window.addEventListener("keydown", (e) => {
-  keys[e.key] = true;
-
-  if (currentScreen !== "game") return; 
-
-  if (e.key === "Home") {
-    gameRunning = false;
-    clearInterval(timerInterval);
-    stopAllSounds(); 
-    showScreen("welcome");
-  }
-});
-
 function goToMainMenu() {
+  stopAllSounds();
   showScreen("welcome");
-  stopAllSounds(); 
 }
