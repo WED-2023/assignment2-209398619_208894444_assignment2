@@ -7,6 +7,9 @@ body {
   overflow-x: hidden;
   min-width: 1366px;
   min-height: 768px;
+  background-image: url("assets/images/background.jpg");
+  background-size: cover;
+  background-attachment: fixed;
 }
 
 h1, h2, p {
@@ -15,20 +18,63 @@ h1, h2, p {
 
 /* Header */
 header {
-  background-color: #111;
+  background-color: rgba(17, 17, 17, 0.9);
   text-align: center;
   padding: 20px;
   border-bottom: 2px solid #333;
+  position: relative;
 }
 
+header h1 {
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+  color: #fff;
+}
+
+/* Logo container positioning and styling */
+.logo-container {
+  position: absolute;
+  top: 20px;
+  left: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #f32128, #f32128);
+  border-radius: 50%;
+  padding: 5px;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+  z-index: 2000;
+  overflow: visible;
+}
+
+/* Logo image styling */
 .logo {
-  width: 150px;
-  margin-top: 10px;
+  height: 80px;
+  width: auto;
+  border-radius: 50%;
+  background-color: white;
+  padding: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: transform 0.3s ease;
+  animation: pulse 2s ease infinite;
+}
+
+/* Logo hover effect */
+.logo:hover {
+  transform: scale(1.1);
+}
+
+/* Pulsing animation for the logo */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(0, 255, 255, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(0, 255, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 255, 255, 0); }
 }
 
 /* Navigation */
 nav {
-  background-color: #1e1e1e;
+  background-color: rgba(30, 30, 30, 0.9);
   padding: 10px;
   text-align: center;
 }
@@ -57,6 +103,11 @@ nav button:hover {
   display: none;
   padding: 30px;
   text-align: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 15px;
+  margin: 20px auto;
+  max-width: 1200px;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
 }
 
 .screen.active {
@@ -86,7 +137,6 @@ nav button:hover {
   background-color: #111;
 }
 
-
 /* Forms */
 form {
   display: flex;
@@ -103,6 +153,56 @@ input, select {
   border: none;
   font-size: 16px;
   width: 200px;
+  background-color: #222;
+  color: white;
+  border: 1px solid #444;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #00ffff;
+  box-shadow: 0 0 10px #00ffff;
+}
+
+
+/* Date of birth styling */
+.date-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+
+.date-inputs {
+  display: flex;
+  gap: 10px;
+  margin-left: 15px;
+}
+
+.date-inputs select {
+  width: 100px;
+}
+
+.form-row {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.submit-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.submit-btn {
+  width: auto;
+  min-width: 150px;
+  margin-top: 15px;
 }
 
 form button {
@@ -115,6 +215,7 @@ form button {
   cursor: pointer;
   box-shadow: 0 0 8px #00ffff;
   transition: 0.3s ease;
+  margin-top: 15px;
 }
 
 form button:hover {
@@ -122,27 +223,92 @@ form button:hover {
   box-shadow: 0 0 12px #00ff66, 0 0 20px #00ff66;
 }
 
+/* Message styling */
+.message {
+  margin-top: 15px;
+  color: #ff0066;
+  font-weight: bold;
+}
+
+/* Config screen styling */
+.config-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+}
+
+.config-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 400px;
+  justify-content: space-between;
+}
+
+.config-item label {
+  font-size: 18px;
+  color: #00ffff;
+}
+
+.start-btn {
+  background-color: #00ffff;
+  border: none;
+  padding: 15px 30px;
+  font-size: 18px;
+  color: black;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 0 8px #00ffff;
+  transition: 0.3s ease;
+  margin-top: 20px;
+}
+
+.start-btn:hover {
+  background-color: #00ff66;
+  box-shadow: 0 0 12px #00ff66, 0 0 20px #00ff66;
+}
+
 /* Canvas and Game UI */
+#game {
+  padding: 0;
+  max-width: 100%;
+  margin: 0;
+  background: none;
+  box-shadow: none;
+  position: relative;
+}
+
 #gameCanvas {
-  background-image: url("assets/startScreenBackground.png");
-  background-size: cover;
   display: block;
   margin: 0 auto;
   border: 2px solid #333;
   box-shadow: 0 0 12px #00f;
+  background-image: url("assets/images/gameBackground.jpg");
+  background-size: cover;
 }
 
 #gameUI {
   position: absolute;
-  top: 100px;
-  left: 50px;
+  top: 20px;
+  left: 20px;
   font-size: 20px;
   color: #fff;
   text-align: left;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid #00ffff;
+  box-shadow: 0 0 10px #00ffff;
+  z-index: 10;
 }
 
 #gameUI p {
   margin: 10px 0;
+  font-weight: bold;
+  text-shadow: 1px 1px 3px #000;
 }
 
 /* Modal Styling */
@@ -154,18 +320,27 @@ form button:hover {
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.8);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal-content {
   background-color: #222;
   color: white;
-  margin: 10% auto;
+  margin: 5% auto;
   padding: 20px 30px;
-  border: 2px solid #555;
-  border-radius: 8px;
+  border: 2px solid #00ffff;
+  border-radius: 15px;
   width: 50%;
   position: relative;
+  box-shadow: 0 0 25px #00ffff;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .close {
@@ -175,6 +350,23 @@ form button:hover {
   right: 20px;
   font-size: 28px;
   cursor: pointer;
+  transition: 0.3s;
+}
+
+.close:hover {
+  color: #00ffff;
+  text-shadow: 0 0 10px #00ffff;
+}
+
+.modal-content h2 {
+  color: #00ffff;
+  text-shadow: 0 0 5px #00ffff;
+  border-bottom: 1px solid #444;
+  padding-bottom: 10px;
+}
+
+.modal-content strong {
+  color: #00ffff;
 }
 
 .modal-content ul {
@@ -182,9 +374,13 @@ form button:hover {
   padding-left: 20px;
 }
 
+.modal-content ul li {
+  margin: 8px 0;
+}
+
 /* Footer */
 footer {
-  background-color: #111;
+  background-color: rgba(17, 17, 17, 0.9);
   color: #888;
   text-align: center;
   padding: 15px;
@@ -207,6 +403,117 @@ footer {
 
   #gameUI {
     left: 20px;
-    top: 80px;
+    top: 20px;
+  }
+}
+
+.game-notification {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-content {
+  background-color: #111;
+  border: 2px solid #00ffff;
+  border-radius: 8px;
+  box-shadow: 0 0 20px #00ffff;
+  padding: 20px;
+  text-align: center;
+  width: 300px;
+  color: white;
+  animation: glow 1.5s infinite alternate;
+}
+
+.notification-content p {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.notification-content button {
+  background-color: #00ffff;
+  color: black;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.notification-content button:hover {
+  background-color: #00cccc;
+  transform: scale(1.05);
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 10px #00ffff;
+  }
+  to {
+    box-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff;
+  }
+}
+
+/* Add these styles to your style.css file */
+.game-notification {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-content {
+  background-color: #111;
+  border: 2px solid #00ffff;
+  border-radius: 8px;
+  box-shadow: 0 0 20px #00ffff;
+  padding: 20px;
+  text-align: center;
+  width: 300px;
+  color: white;
+  animation: glow 1.5s infinite alternate;
+}
+
+.notification-content p {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.notification-content button {
+  background-color: #00ffff;
+  color: black;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.notification-content button:hover {
+  background-color: #00cccc;
+  transform: scale(1.05);
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 10px #00ffff;
+  }
+  to {
+    box-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff;
   }
 }

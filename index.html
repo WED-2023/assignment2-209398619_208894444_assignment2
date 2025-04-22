@@ -8,140 +8,190 @@
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header>
-    <h1>Spaceship Game</h1>
-    <img src="assets/startScreenBackground.png" alt="Logo" class="logo">
-  </header>
+<!-- HEADER -->
+<header>
+<h1>Spaceship Game</h1>
+<img src="assets/images/logo.png" alt="Logo" class="logo">
+</header>
 
-  <!-- MENU -->
-  <nav>
-    <button onclick="showScreen('welcome')">Home</button>
-    <button onclick="openModal()">About</button>
-    <button onclick="startNewGame()">New Game</button>
-  </nav>
+<!-- MENU -->
+<nav>
+<button onclick="showScreen('welcome')">Home</button>
+<button onclick="openModal()">About</button>
+<button onclick="startNewGame()">New Game</button>
+</nav>
 
-  <!-- MAIN SCREENS -->
-  <main>
-    
-    <!-- WELCOME SCREEN -->
-    <div id="welcome" class="screen active">
-      <h2>Welcome to our game!</h2>
-      <p>Created by Raz Ganon & Keren Londner</p>
-      <div class="action-buttons">
-        <button onclick="showScreen('register')">Register</button>
-        <button onclick="showScreen('login')">Login</button>
-      </div>      
-    </div>
+<!-- MAIN SCREENS -->
+<main>
 
-    <!-- REGISTER SCREEN -->
-    <div id="register" class="screen">
-      <h2>Register</h2>
-      <form onsubmit="return registerUser(event)">
+<!-- WELCOME SCREEN -->
+<div id="welcome" class="screen active">
+    <h2>Welcome to our game!</h2>
+    <p>Created by Raz Ganon 208894444 & Keren Londner 209398619</p>
+    <div class="action-buttons">
+    <button onclick="showScreen('register')">Register</button>
+    <button onclick="showScreen('login')">Login</button>
+    </div>      
+</div>
+
+<!-- REGISTER SCREEN -->
+<div id="register" class="screen">
+    <h2>Register</h2>
+    <form onsubmit="return registerUser(event)">
+      <div class="form-row">
         <input type="text" id="regUsername" placeholder="Username" required />
         <input type="password" id="regPassword" placeholder="Password" required />
         <input type="password" id="verifyPassword" placeholder="Verify Password" required />
+      </div>
+      
+      <div class="form-row">
         <input type="text" id="firstName" placeholder="First Name" required />
         <input type="text" id="lastName" placeholder="Last Name" required />
         <input type="email" id="email" placeholder="Email" required />
-        <label>Date of Birth:</label>
-        <select id="dobYear"></select>
-        <select id="dobMonth"></select>
-        <select id="dobDay"></select>
-        <button type="submit">Submit</button>
-      </form>
-      <p id="registerMsg"></p>
-    </div>
-
-    <!-- LOGIN SCREEN -->
-    <div id="login" class="screen">
-      <h2>Login</h2>
-      <form onsubmit="return loginUser(event)">
-        <input type="text" id="loginUsername" placeholder="Username" required />
-        <input type="password" id="loginPassword" placeholder="Password" required />
-        <button type="submit">Login</button>
-      </form>
-      <p id="loginMsg"></p>
-    </div>
-
-    <!-- CONFIGURATION SCREEN -->
-    <div id="config" class="screen">
-      <h2>Game Configuration</h2>
-
-      <label for="shootKey">Choose shooting key:</label>
-      <select id="shootKey">
-        <option value=" ">Space</option>
-        <script>
-          // Dynamically add all letter options (A-Z)
-          for (let i = 65; i <= 90; i++) {
-            const letter = String.fromCharCode(i);
-            document.write(`<option value="${letter}">${letter}</option>`);
-          }
-        </script>
-      </select>
-
-      <br><br>
-
-      <label for="gameTime">Game Time (min):</label>
-      <input type="number" id="gameTime" min="2" value="2" />
-
-      <br><br>
-
-      <label for="playerColor">Player Color:</label>
-      <input type="color" id="playerColor" value="#aa00ff" />
-      <button onclick="startConfiguredGame()">Start Game</button>
-    </div>
-
-    <!-- GAME SCREEN -->
-    <div id="game" class="screen">
-      <canvas id="gameCanvas" width="1366" height="768"></canvas>
-      <div id="gameUI">
-        <p id="score">Score: 0</p>
-        <p id="lives">Lives: 3</p>
-        <p id="timer">Time Left: 00</p>
       </div>
+      
+      <div class="date-container">
+        <label>Date of Birth:</label>
+        <div class="date-inputs">
+          <select id="dobDay"></select>
+          <select id="dobMonth"></select>
+          <select id="dobYear"></select>
+        </div>
+      </div>
+      
+      <div class="submit-container">
+        <button type="submit" class="submit-btn">Submit</button>
+      </div>
+    </form>
+    <p id="registerMsg" class="message"></p>
+  </div>
+
+<!-- LOGIN SCREEN -->
+<div id="login" class="screen">
+    <h2>Login</h2>
+    <form onsubmit="return loginUser(event)">
+    <input type="text" id="loginUsername" placeholder="Username" required />
+    <input type="password" id="loginPassword" placeholder="Password" required />
+    <button type="submit">Login</button>
+    </form>
+    <p id="loginMsg" class="message"></p>
+</div>
+
+<!-- CONFIGURATION SCREEN -->
+<div id="config" class="screen">
+    <h2>Game Configuration</h2>
+    <div class="config-container">
+        <div class="config-item">
+        <label for="shootKey">Choose shooting key:</label>
+        <select id="shootKey">
+            <option value=" ">Space</option>
+            <script>
+            // Dynamically add all letter options (A-Z)
+            for (let i = 65; i <= 90; i++) {
+                const letter = String.fromCharCode(i);
+                document.write(`<option value="${letter}">${letter}</option>`);
+            }
+            </script>
+        </select>
+        </div>
+
+        <div class="config-item">
+        <label for="gameTime">Game Time (min):</label>
+        <input type="number" id="gameTime" min="2" value="2" />
+        </div>
+
+        <div class="config-item">
+        <label for="playerColor">Player Color:</label>
+        <input type="color" id="playerColor" value="#aa00ff" />
+        </div>
+
+        <div class="config-item">
+        <label for="enemyColor">Enemy Base Color:</label>
+        <input type="color" id="enemyColor" value="#ff3333" /> 
+        </div>
+
+        <button class="start-btn" onclick="startConfiguredGame()">Start Game</button>
+    </div>
     </div>
 
-  </main>
-
-  <!-- FOOTER -->
-  <footer>
-    <p>Spaceship Game &copy; 2025 | Raz Ganon & Keren Londner | Contact: razandkeren@example.com</p>
-  </footer>
-
-  <!-- ABOUT MODAL -->
-  <div id="aboutModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal()">&times;</span>
-      <h2>About the Project</h2>
-      <p><strong>Creators:</strong> Raz Ganon & Keren Londner</p>
-      <p><strong>Template Used:</strong> No</p>
-      <p><strong>jQuery Plugin Used:</strong> No</p>
-      <p><strong>Difficulties:</strong> Managing multiple game states and synchronizing canvas logic with UI-based screens</p>
-      <p><strong>Game Instructions:</strong></p>
-      <ul>
-        <li>Use arrow keys to move</li>
-        <li>Use configured key to shoot</li>
-        <li>Score based on row of enemy hit</li>
-        <li>3 hits and you're out!</li>
-      </ul>
+<!-- GAME SCREEN -->
+<div id="game" class="screen">
+    <canvas id="gameCanvas" width="1366" height="768"></canvas>
+    <div id="gameUI">
+    <p id="score">Score: 0</p>
+    <p id="lives">Lives: 3</p>
+    <p id="timer">Time Left: 02:00</p>
+    </div>
+</div>
+<div id="gameNotification" class="game-notification">
+    <div class="notification-content">
+      <p id="notificationMessage"></p>
+      <button onclick="closeNotification()">OK</button>
     </div>
   </div>
 
-  <!-- AUDIO ELEMENTS -->
-  <audio id="backgroundMusic" loop preload="auto">
-    <source src="assets/sounds/backgroundMusic.wav" type="audio/mpeg" />
-  </audio>
-  <audio id="bomb" src="assets/sounds/bomb.mp3" preload="auto"></audio>
-  <audio id="bonus" src="assets/sounds/bonus.mp3" preload="auto"></audio>
-  <audio id="enemyShoot" src="assets/sounds/enemyShoot.wav" preload="auto"></audio>
-  <audio id="explode" src="assets/sounds/explode.wav" preload="auto"></audio>
-  <audio id="gameOver" src="assets/sounds/gameOver.mp3" preload="auto"></audio>
-  <audio id="select" src="assets/sounds/select.mp3" preload="auto"></audio>
-  <audio id="shoot" src="assets/sounds/shoot.wav" preload="auto"></audio>
-  <audio id="start" src="assets/sounds/start.mp3" preload="auto"></audio>
+</main>
 
-  <!-- SCRIPT -->
-  <script src="script.js"></script>
+<!-- FOOTER -->
+<footer>
+<p>Spaceship Game &copy; 2025 | Raz Ganon & Keren Londner | Contact: razandkeren@example.com</p>
+</footer>
+
+
+<!-- ABOUT MODAL -->
+<div id="aboutModal" class="modal">
+<div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h2>About the Game</h2>
+
+    <p><strong>Creators:</strong> Raz Ganon (208894444), Keren Londner (209398619)</p>
+    <p><strong>Template Used:</strong> No</p>
+    <p><strong>jQuery Plugin Used:</strong> No</p>
+
+    <p><strong>Difficulties Encountered:</strong></p>
+    <ul>
+    <li>Managing transitions between game screens and UI states</li>
+    <li>Synchronizing canvas rendering with HTML-based game UI</li>
+    <li>Implementing diagonal movement for both player and enemies</li>
+    <li>Handling real-time scoring and persistent user data</li>
+    <li>Creating the acceleration system for enemies</li>
+    </ul>
+
+    <p><strong>Game Instructions:</strong></p>
+    <ul>
+    <li>Use arrow keys (↑ ↓ ← →) to move. Diagonal movement is supported.</li>
+    <li>Shoot using the configured key (space or any chosen letter)</li>
+    <li>Earn points based on the enemy row:
+        <ul>
+        <li>Bottom row (4th): 5 points</li>
+        <li>3rd row: 10 points</li>
+        <li>2nd row: 15 points</li>
+        <li>Top row (1st): 20 points</li>
+        </ul>
+    </li>
+    <li>You have 3 lives — getting hit 3 times ends the game</li>
+    <li>Enemy ships speed up every 5 seconds (up to 4 times)</li>
+    <li>You can only move in the bottom 40% of the screen</li>
+    <li>Reach the time limit or destroy all enemies to win</li>
+    </ul>
+</div>
+</div>
+  
+
+<!-- AUDIO ELEMENTS -->
+<audio id="backgroundMusic" loop preload="auto">
+<source src="assets/sounds/backgroundMusic.wav" type="audio/mpeg" />
+</audio>
+<audio id="bomb" src="assets/sounds/bomb.mp3" preload="auto"></audio>
+<audio id="bonus" src="assets/sounds/bonus.mp3" preload="auto"></audio>
+<audio id="enemyShoot" src="assets/sounds/enemyShoot.wav" preload="auto"></audio>
+<audio id="explode" src="assets/sounds/explode.wav" preload="auto"></audio>
+<audio id="gameOver" src="assets/sounds/gameOver.mp3" preload="auto"></audio>
+<audio id="select" src="assets/sounds/select.mp3" preload="auto"></audio>
+<audio id="shoot" src="assets/sounds/shoot.wav" preload="auto"></audio>
+<audio id="start" src="assets/sounds/start.mp3" preload="auto"></audio>
+
+<!-- SCRIPT -->
+<script src="script.js"></script>
 </body>
 </html>

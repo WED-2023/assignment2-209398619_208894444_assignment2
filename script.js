@@ -21,6 +21,11 @@ let gameRunning = false;
 let enemyDirection = 1;
 let enemySpeed = 1;
 let enemyBulletDelay = true;
+let currentScreen = "welcome";
+let isPaused = false;
+let canShoot = true; 
+let playerImage, enemyImage;
+let movementBoundary; // For restricting player to bottom 40%
 
 // =====================
 // Screen Navigation
@@ -28,10 +33,21 @@ let enemyBulletDelay = true;
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(div => div.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  
+  // Stop background music when returning to welcome screen
+  if (id === "welcome") {
+    stopSound("backgroundMusic");
+  }
+  
+  // Play selection sound if not on welcome screen
+  if (id !== "welcome") {
+    playSound("select");
+  }
 }
 
 function openModal() {
   document.getElementById("aboutModal").style.display = "block";
+  playSound("select");
 }
 function closeModal() {
   document.getElementById("aboutModal").style.display = "none";
@@ -44,6 +60,24 @@ window.onkeydown = e => {
 };
 
 // =====================
+// Sound Management
+// =====================
+function playSound(id) {
+  const sound = document.getElementById(id);
+  if (sound) {
+    sound.currentTime = 0;
+    sound.play().catch(e => console.log("Audio play error:", e));
+  }
+}
+function stopSound(id) {
+  const sound = document.getElementById(id);
+  if (sound && !sound.paused) {
+    sound.pause();
+    sound.currentTime = 0;
+  }
+}
+
+// =====================
 // Registration & Login
 // =====================
 function registerUser(event) {
@@ -54,16 +88,35 @@ function registerUser(event) {
   let f = document.getElementById("firstName").value;
   let l = document.getElementById("lastName").value;
   let e = document.getElementById("email").value;
+  let day = document.getElementById("dobDay").value;
+  let month = document.getElementById("dobMonth").value;
+  let year = document.getElementById("dobYear").value;
 
-  if (!u || !p || !v || !f || !l || !e) return showMsg("registerMsg", "All fields are required.");
-  if (/\d/.test(f) || /\d/.test(l)) return showMsg("registerMsg", "Names cannot contain numbers.");
-  if (!p.match(/^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/)) return showMsg("registerMsg", "Password must be 8+ chars, include a number and special char.");
-  if (p !== v) return showMsg("registerMsg", "Passwords do not match.");
-  if (!e.includes("@")) return showMsg("registerMsg", "Invalid email.");
-  if (users.find(user => user.username === u)) return showMsg("registerMsg", "Username already taken.");
+  if (!u || !p || !v || !f || !l || !e || !day || !month || !year) 
+    return showMsg("registerMsg", "All fields are required.");
+  if (/\d/.test(f) || /\d/.test(l)) 
+    return showMsg("registerMsg", "Names cannot contain numbers.");
+  if (!p.match(/^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/)) 
+    return showMsg("registerMsg", "Password must be 8+ chars, include a number and special char.");
+  if (p !== v) 
+    return showMsg("registerMsg", "Passwords do not match.");
+  if (!e.includes("@")) 
+    return showMsg("registerMsg", "Invalid email.");
+  if (users.find(user => user.username === u)) 
+    return showMsg("registerMsg", "Username already taken.");
 
-  users.push({ username: u, password: p });
-  showMsg("registerMsg", "Registration successful!");
+  users.push({ 
+    username: u, 
+    password: p,
+    firstName: f,
+    lastName: l,
+    email: e,
+    dob: `${year}-${month}-${day}`
+  });
+  
+  playSound("bonus");
+  showMsg("registerMsg", "Registration successful! You can now login.");
+  document.getElementById("regForm").reset();
 }
 
 function loginUser(event) {
@@ -71,12 +124,26 @@ function loginUser(event) {
   let u = document.getElementById("loginUsername").value;
   let p = document.getElementById("loginPassword").value;
   const user = users.find(user => user.username === u && user.password === p);
+  
+  // Clear form fields immediately regardless of login success
+  document.getElementById("loginUsername").value = "";
+  document.getElementById("loginPassword").value = "";
+  
   if (!user) return showMsg("loginMsg", "Invalid username or password.");
 
   currentUser = u;
-  userScores[currentUser] = [];
+  if (!userScores[currentUser]) userScores[currentUser] = [];
+  
+  playSound("select");
   showMsg("loginMsg", "");
   showScreen("config");
+}
+
+// =====================
+// Messages
+// =====================
+function showMsg(id, msg) {
+  document.getElementById(id).innerText = msg;
 }
 
 // =====================
@@ -87,7 +154,17 @@ function startConfiguredGame() {
   config.shootKey = shootKey;
   config.gameTime = Math.max(120, parseInt(document.getElementById("gameTime").value) * 60);
   config.playerColor = document.getElementById("playerColor").value;
-  document.getElementById("backgroundMusic").play();
+  config.enemyColor = document.getElementById("enemyColor").value || "#ff3333";
+  
+  playSound("start");
+  
+  // Start background music
+  const bgMusic = document.getElementById("backgroundMusic");
+  if (bgMusic) {
+    bgMusic.volume = 0.4; // Lower volume a bit
+    bgMusic.play().catch(e => console.log("BGM play error:", e));
+  }
+  
   initGame();
 }
 
@@ -98,13 +175,22 @@ function initGame() {
   showScreen("game");
   canvas = document.getElementById("gameCanvas");
   ctx = canvas.getContext("2d");
+   
+  playerImage = new Image();
+  playerImage.src = "assets/images/spaceship.png";
+  
+  enemyImage = new Image();
+  enemyImage.src = "assets/images/invader.png";
 
+  // Calculate the movement boundary (40% of bottom screen)
+  movementBoundary = canvas.height * 0.6; // Player can only move in bottom 40%
+  
   player = {
     x: Math.random() * (canvas.width - 60),
     y: canvas.height * 0.65,
     w: 60, h: 40,
     speed: 6,
-    color: config.playerColor
+    
   };
 
   bullets = [];
@@ -118,15 +204,17 @@ function initGame() {
   enemySpeed = 1;
   enemyDirection = 1;
   gameRunning = true;
+  canShoot = true;
 
   createEnemies();
   setupTimer();
+  updateUI();
   requestAnimationFrame(gameLoop);
 }
 
 function createEnemies() {
+  // Create 20 enemies in a 4x5 formation
   const rows = 4, cols = 5, spacing = 80, startX = 300, startY = 80;
-  const colors = ["#ff4444", "#ff9900", "#33cc33", "#3399ff"]; // red, orange, green, blue
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       enemies.push({
@@ -134,25 +222,27 @@ function createEnemies() {
         y: startY + r * spacing,
         w: 50, h: 30,
         alive: true,
-        row: r,
-        color: colors[r]
+        row: r // Store the row for scoring
       });
     }
   }
 }
 
-
 // =====================
 // Timer and Score UI
 // =====================
 function setupTimer() {
+  clearInterval(timerInterval);
   timerInterval = setInterval(() => {
     timeLeft--;
     timeElapsed++;
+    
+    // Speed up enemies every 5 seconds, max 4 times
     if (timeElapsed % 5 === 0 && speedUps < 4) {
       enemySpeed += 0.5;
       speedUps++;
     }
+    
     updateUI();
 
     if (timeLeft <= 0) endGame("time");
@@ -162,11 +252,14 @@ function setupTimer() {
 function updateUI() {
   document.getElementById("score").textContent = "Score: " + score;
   document.getElementById("lives").textContent = "Lives: " + lives;
-  document.getElementById("timer").textContent = "Time Left: " + timeLeft + "s";
-}
 
-function showMsg(id, msg) {
-  document.getElementById(id).textContent = msg;
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+  const formattedTime = 
+    minutes.toString().padStart(2, '0') + ":" + 
+    seconds.toString().padStart(2, '0');
+
+  document.getElementById("timer").textContent = "Time Left: " + formattedTime;
 }
 
 // =====================
@@ -182,7 +275,7 @@ function gameLoop() {
   drawPlayer();
   drawEnemies();
   drawBullets();
-  updateUI();
+  
   if (lives <= 0) return endGame("death");
   if (enemies.every(e => !e.alive)) return endGame("cleared");
 
@@ -190,46 +283,100 @@ function gameLoop() {
 }
 
 function drawPlayer() {
-  ctx.fillStyle = player.color;
-  ctx.fillRect(player.x, player.y, player.w, player.h);
+  ctx.drawImage(playerImage, player.x, player.y, player.w, player.h);
 }
 
 function drawEnemies() {
-  enemies.forEach(e => {
-    if (e.alive) {
-      ctx.fillStyle = e.color;
-      ctx.fillRect(e.x, e.y, e.w, e.h);
+  enemies.forEach(enemy => {
+    if (enemy.alive) {
+      ctx.drawImage(enemyImage, enemy.x, enemy.y, enemy.w, enemy.h);
     }
   });
 }
 
-
 function drawBullets() {
-  ctx.fillStyle = "violet";
-  bullets.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
-  ctx.fillStyle = "yellow";
-  enemyBullets.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
+  // Draw player bullets (make them clearly visible)
+  ctx.fillStyle = "#00ffff"; // Bright cyan color for player bullets
+  bullets.forEach(b => {
+    // Draw larger, more visible player bullets
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+    
+    // Add a glowing effect
+    ctx.beginPath();
+    ctx.arc(b.x + b.w/2, b.y + b.h/2, 5, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(0, 255, 255, 0.3)";
+    ctx.fill();
+  });
+  
+  // Draw enemy bullets
+  ctx.fillStyle = "#ffff00"; // Yellow for enemy bullets
+  enemyBullets.forEach(b => {
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+  });
 }
 
 function movePlayer() {
+  // Restrict player movement to bottom 40% of screen
   if (keys["ArrowLeft"] && player.x > 0) player.x -= player.speed;
   if (keys["ArrowRight"] && player.x + player.w < canvas.width) player.x += player.speed;
-  if (keys["ArrowUp"] && player.y > canvas.height * 0.6) player.y -= player.speed;
+  if (keys["ArrowUp"] && player.y > movementBoundary) player.y -= player.speed;
   if (keys["ArrowDown"] && player.y + player.h < canvas.height) player.y += player.speed;
+  if (keys[shootKey] && canShoot) shoot();
 }
 
 function moveEnemies() {
-  let hitWall = enemies.some(e => e.alive && (e.x + e.w > canvas.width || e.x < 0));
+  let hitWall = false;
+  
+  // Check if any enemy hit a wall
+  enemies.forEach(e => {
+    if (e.alive) {
+      if ((e.x + e.w + enemySpeed * enemyDirection > canvas.width) || 
+          (e.x + enemySpeed * enemyDirection < 0)) {
+        hitWall = true;
+      }
+    }
+  });
+  
+  // Change direction if hit wall
   if (hitWall) enemyDirection *= -1;
-  enemies.forEach(e => { if (e.alive) e.x += enemySpeed * enemyDirection; });
+  
+  // Move all enemies
+  enemies.forEach(e => { 
+    if (e.alive) e.x += enemySpeed * enemyDirection; 
+  });
+  
+  // Enemy shooting logic
   if (enemyBulletDelay) {
-    let shooters = enemies.filter(e => e.alive);
-    if (shooters.length > 0) {
-      let e = shooters[Math.floor(Math.random() * shooters.length)];
-      enemyBullets.push({ x: e.x + e.w / 2, y: e.y + e.h, w: 4, h: 12, speed: 3 + speedUps });
-      document.getElementById("enemyShoot").play();
-      enemyBulletDelay = false;
-      setTimeout(() => enemyBulletDelay = true, 1000);
+    let aliveEnemies = enemies.filter(e => e.alive);
+    if (aliveEnemies.length > 0) {
+      // Pick random enemy to shoot
+      let shooter = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
+      
+      // Only allow new enemy bullet when previous one traveled 3/4 of screen
+      let canEnemyShoot = true;
+      if (enemyBullets.length > 0) {
+        // Calculate progress of furthest bullet
+        let maxProgress = 0;
+        enemyBullets.forEach(bullet => {
+          let progress = bullet.y / canvas.height;
+          if (progress > maxProgress) maxProgress = progress;
+        });
+        
+        // Only allow new shot if furthest bullet passed 3/4 of screen
+        if (maxProgress < 0.75) canEnemyShoot = false;
+      }
+      
+      if (canEnemyShoot) {
+        enemyBullets.push({ 
+          x: shooter.x + shooter.w / 2, 
+          y: shooter.y + shooter.h, 
+          w: 4, h: 12, 
+          speed: 3 + speedUps // Speed increases with speedUps
+        });
+        playSound("enemyShoot");
+        enemyBulletDelay = false;
+        setTimeout(() => enemyBulletDelay = true, 800 - speedUps * 100); // Faster recharge with speed ups
+      }
     }
   }
 }
@@ -241,77 +388,244 @@ function updateBullets() {
   enemyBullets = enemyBullets.filter(b => b.y < canvas.height);
 }
 
-function checkCollisions() {
-  bullets.forEach(b => {
-    enemies.forEach(e => {
-      if (e.alive && b.x < e.x + e.w && b.x + b.w > e.x && b.y < e.y + e.h && b.y + b.h > e.y) {
-        e.alive = false;
-        b.y = -10;
-        score += (4 - e.row) * 5;
-        document.getElementById("explode").play();
-      }
+function shoot() {
+  if (canShoot) {
+    bullets.push({ 
+      x: player.x + player.w / 2 - 2, 
+      y: player.y, 
+      w: 4, h: 12, // Make the bullet slightly larger
+      speed: 7 
     });
-  });
+    playSound("shoot");
+    canShoot = false;
+    setTimeout(() => canShoot = true, 300); // Cooldown
+  }
+}
 
-  enemyBullets.forEach(b => {
-    if (b.x < player.x + player.w && b.x + b.w > player.x && b.y < player.y + player.h && b.y + b.h > player.y) {
+function checkCollisions() {
+  // Check player bullets vs enemies
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const b = bullets[i];
+    for (let j = 0; j < enemies.length; j++) {
+      const e = enemies[j];
+      if (e.alive && 
+          b.x < e.x + e.w && 
+          b.x + b.w > e.x && 
+          b.y < e.y + e.h && 
+          b.y + b.h > e.y) {
+        
+        e.alive = false;
+        bullets.splice(i, 1);
+        
+        // Score based on enemy row (rows are 0-indexed)
+        // Row 0 (top row) = 20 points
+        // Row 1 = 15 points
+        // Row 2 = 10 points
+        // Row 3 (bottom row) = 5 points
+        score += (4 - e.row) * 5;
+        
+        playSound("explode");
+        updateUI();
+        break;
+      }
+    }
+  }
+
+  // Check enemy bullets vs player
+  for (let i = enemyBullets.length - 1; i >= 0; i--) {
+    const b = enemyBullets[i];
+    if (b.x < player.x + player.w && 
+        b.x + b.w > player.x && 
+        b.y < player.y + player.h && 
+        b.y + b.h > player.y) {
+      
       lives--;
+      updateUI();
+      
+      // Reset player position to bottom with random X
       player.x = Math.random() * (canvas.width - 60);
       player.y = canvas.height * 0.65;
+      
+      // Clear all enemy bullets
       enemyBullets = [];
-      document.getElementById("bomb").play();
+      
+      playSound("bomb");
+      
+      if (lives <= 0) {
+        endGame("death");
+      }
+      break;
     }
-  });
+  }
 }
 
 // =====================
 // Input Handling
 // =====================
-window.addEventListener("keydown", e => {
+window.addEventListener("keydown", (e) => {
   keys[e.key] = true;
-  if (e.key === shootKey && bullets.length < 1) {
-    bullets.push({
-      x: player.x + player.w / 2 - 2,
-      y: player.y,
-      w: 4, h: 12,
-      speed: 7
-    });
-    document.getElementById("shoot").play();
+
+  if (currentScreen !== "game") return; 
+
+  if (e.key === "Home") {
+    gameRunning = false;
+    clearInterval(timerInterval);
+    stopSound("backgroundMusic"); // Ensure music stops when going to home
+    showScreen("welcome");
   }
 });
-window.addEventListener("keyup", e => keys[e.key] = false);
+
+window.addEventListener("keyup", (e) => {
+  keys[e.key] = false;
+});
 
 // =====================
 // End Game & Scores
 // =====================
 function endGame(reason) {
+  if (!gameRunning) return; 
   gameRunning = false;
   clearInterval(timerInterval);
-  document.getElementById("backgroundMusic").pause();
+
+  // Ensure background music stops
+  stopSound("backgroundMusic");
 
   let message = "";
-  if (reason === "death") message = "You Lost!";
-  else if (reason === "time" && score < 100) message = "You can do better!";
-  else if (reason === "cleared") message = "Champion!";
-  else message = "Winner";
+  if (reason === "death") {
+    message = "You Lost!";
+    playSound("bomb");
+  }
+  else if (reason === "time" && score < 100) {
+    message = "You can do better!";
+    playSound("select");
+  }
+  else if (reason === "cleared") {
+    message = "Champion!";
+    playSound("bonus");
+  }
+  else {
+    message = "Winner!";
+    playSound("bonus");
+  }
+  showGameNotification(`${message}\nScore: ${score}`);
 
-  alert(`${message}\nScore: ${score}`);
-  userScores[currentUser].push(score);
-  showHighScores();
-  showScreen("welcome");
+  if (currentUser) {
+    if (!userScores[currentUser]) userScores[currentUser] = [];
+    userScores[currentUser].push(score);
+    currentScore = score;
+  }
+}
+function showHighScores() {
+  const scores = userScores[currentUser] || [];
+  const sorted = [...scores].sort((a, b) => b - a);
+  const pos = sorted.indexOf(currentScore) + 1;
+
+  showGameNotification("High Scores:\n" + sorted.slice(0, 5).join("\n") + `\nYour position: ${pos}`);
+  setTimeout(() => {
+    showScreen("welcome");
+  }, 100);
+}
+function showGameNotification(message) {
+  const notification = document.getElementById("gameNotification");
+  const messageElement = document.getElementById("notificationMessage");
+  
+  messageElement.innerHTML = message.replace(/\n/g, '<br>');
+  
+
+  notification.style.display = "flex";
 }
 
-function showHighScores() {
-  let scores = userScores[currentUser];
-  scores.sort((a, b) => b - a);
-  let pos = scores.indexOf(score) + 1;
-  alert("High Scores:\n" + scores.join("\n") + `\nYour position: ${pos}`);
+function closeNotification() {
+  const notification = document.getElementById("gameNotification");
+  notification.style.display = "none";
+  
+  if (currentUser && currentScore !== undefined) {
+    showHighScores();
+    currentScore = undefined;
+  }
 }
 
 function startNewGame() {
   if (!currentUser) {
-    alert("Please login to play.");
+    showGameNotification("Please login to play.");
     return;
   }
   showScreen("config");
+}
+
+let currentScore;
+
+// =====================
+// Function to populate the date dropdowns (Day, Month, Year)
+// =====================
+function populateDateDropdowns() {
+  const yearSelect = document.getElementById('dobYear');
+  const currentYear = new Date().getFullYear();
+  for (let year = currentYear; year >= currentYear - 100; year--) {
+    const option = document.createElement('option');
+    option.value = year;
+    option.textContent = year;
+    yearSelect.appendChild(option);
+  }
+
+  const monthSelect = document.getElementById('dobMonth');
+  for (let month = 1; month <= 12; month++) {
+    const option = document.createElement('option');
+    const monthNumber = month < 10 ? `0${month}` : `${month}`;
+    option.value = month;
+    option.textContent = monthNumber;
+    monthSelect.appendChild(option);
+  }
+
+  const daySelect = document.getElementById('dobDay');
+  for (let day = 1; day <= 31; day++) {
+    const option = document.createElement('option');
+    const dayNumber = day < 10 ? `0${day}` : `${day}`;
+    option.value = day;
+    option.textContent = dayNumber;
+    daySelect.appendChild(option);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', populateDateDropdowns);
+
+// =====================
+// Restart & Game Over
+// =====================
+function restartGame() {
+  player.x = canvas.width / 2 - 30;
+  player.y = canvas.height * 0.65;
+  initGame();
+}
+
+function stopAllSounds() {
+  // Stop background music
+  stopSound("backgroundMusic");
+  
+  // Stop all game sound effects
+  stopSound("shoot");
+  stopSound("enemyShoot");
+  stopSound("explode");
+  stopSound("bomb");
+  stopSound("bonus");
+  stopSound("select");
+}
+
+// Then modify your keydown event listener
+window.addEventListener("keydown", (e) => {
+  keys[e.key] = true;
+
+  if (currentScreen !== "game") return; 
+
+  if (e.key === "Home") {
+    gameRunning = false;
+    clearInterval(timerInterval);
+    stopAllSounds(); 
+    showScreen("welcome");
+  }
+});
+
+function goToMainMenu() {
+  showScreen("welcome");
+  stopAllSounds(); 
 }
