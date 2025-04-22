@@ -7,8 +7,6 @@ let userScores = {};
 let config = {
   shootKey: " ",
   gameTime: 120,
-  playerColor: "#aa00ff",
-  enemyColor: "#ff3333"
 };
 
 let keys = {};
