@@ -178,9 +178,6 @@ function startConfiguredGame() {
   shootKey = document.getElementById("shootKey").value;
   config.shootKey = shootKey;
   config.gameTime = Math.max(120, parseInt(document.getElementById("gameTime").value) * 60);
-  config.playerColor = document.getElementById("playerColor").value;
-  config.enemyColor = document.getElementById("enemyColor").value || "#ff3333";
-  
   playSound("start");
   initGame();
 }
