@@ -8,7 +8,7 @@ Spaceship Game is a classic space shooter inspired by iconic arcade games like S
 
 # Play the Game
 
-Play Spaceship Game
+[Play Spaceship Game](https://wed-2023.github.io/assignment2-209398619_208894444_assignment2/)
 
 # Game Features
 
