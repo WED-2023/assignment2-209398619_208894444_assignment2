@@ -9,15 +9,16 @@ let config = {
   gameTime: 120,
 };
 
+// Game state variables - initialized in initGame()
 let keys = {};
 let shootKey = " ";
 let canvas, ctx;
 let player, bullets, enemyBullets, enemies;
-let score = 0, lives = 3, timeLeft = 0, timeElapsed = 0, speedUps = 0;
-let timerInterval;
+let score, lives, timeLeft, timeElapsed, speedUps;
+let timerInterval = null;
 let gameRunning = false;
-let enemyDirection = 1;
-let enemySpeed = 1;
+let enemyDirection;
+let enemySpeed;
 let enemyBulletDelay = true;
 let currentScreen = "welcome";
 let isPaused = false;
@@ -25,18 +26,38 @@ let canShoot = true;
 let playerImage, enemyImage;
 let movementBoundary; // For restricting player to bottom 40%
 let currentScore;
+let soundTimers = []; // Track setTimeout IDs for sounds
+let gameActive = false; // Flag to control game-related sounds
+
+// Constants to ensure consistent game behavior
+const PLAYER_BASE_SPEED = 6;
+const INITIAL_ENEMY_SPEED = 1;
+const MAX_ENEMY_SPEED = 3;
+const INITIAL_ENEMY_BULLET_SPEED = 3;
+const MAX_ENEMY_BULLET_SPEED = 5;
+const PLAYER_SHOOT_COOLDOWN = 700; // Longer cooldown in milliseconds
+const PLAYER_BULLET_SPEED = 7;
+const MAX_PLAYER_BULLETS = 3; // Optional: limit total bullets on screen
 
 // =====================
 // Screen Navigation
 // =====================
+// update the showScreen function to clear messages when changing screens
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(div => div.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   currentScreen = id;
   
+  // Clear any messages on screen change
+  document.querySelectorAll('.message').forEach(msg => msg.textContent = "");
+  
+  // Clear all timers when changing screens
+  clearAllTimers();
+  
   // Stop all sounds when changing screens
   if (id !== "game") {
     stopAllSounds();
+    gameActive = false;
   }
   
   // Play selection sound if not on welcome screen
@@ -47,6 +68,19 @@ function showScreen(id) {
   // Start background music only when entering the game screen
   if (id === "game") {
     playSound("backgroundMusic");
+    gameActive = true;
+  }
+}
+
+function clearAllTimers() {
+  // Clear all setTimeout timers
+  soundTimers.forEach(timerId => clearTimeout(timerId));
+  soundTimers = [];
+  
+  // Clear the game interval timer
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
   }
 }
 
@@ -71,6 +105,11 @@ window.onkeydown = e => {
 // Sound Management
 // =====================
 function playSound(id) {
+  // For game-related sounds, don't play if game isn't active
+  if (!gameActive && ["enemyShoot", "shoot", "bomb", "explode"].includes(id)) {
+    return;
+  }
+  
   const sound = document.getElementById(id);
   if (sound) {
     sound.currentTime = 0;
@@ -130,6 +169,12 @@ function registerUser(event) {
   if (users.find(user => user.username === u)) 
     return showMsg("registerMsg", "Username already taken.");
 
+  // Reset game state completely
+  clearAllTimers();
+  gameRunning = false;
+  gameActive = false;
+  keys = {};
+
   users.push({ 
     username: u, 
     password: p,
@@ -141,7 +186,14 @@ function registerUser(event) {
   
   playSound("bonus");
   showMsg("registerMsg", "Registration successful! You can now login.");
-  document.getElementById("regForm").reset();
+  
+  // Reset form fields
+  document.getElementById("regUsername").value = "";
+  document.getElementById("regPassword").value = "";
+  document.getElementById("verifyPassword").value = "";
+  document.getElementById("firstName").value = "";
+  document.getElementById("lastName").value = "";
+  document.getElementById("email").value = "";
 }
 
 function loginUser(event) {
@@ -156,6 +208,13 @@ function loginUser(event) {
   
   if (!user) return showMsg("loginMsg", "Invalid username or password.");
 
+  // Completely reset game state for the new user
+  clearAllTimers();
+  gameRunning = false;
+  gameActive = false;
+  keys = {};
+  
+  // Set current user and initialize score tracking
   currentUser = u;
   if (!userScores[currentUser]) userScores[currentUser] = [];
   
@@ -175,9 +234,17 @@ function showMsg(id, msg) {
 // Game Config
 // =====================
 function startConfiguredGame() {
+  // Reset any lingering game state
+  clearAllTimers();
+  gameRunning = false;
+  gameActive = false;
+  keys = {};
+  
+  // Configure the game
   shootKey = document.getElementById("shootKey").value;
   config.shootKey = shootKey;
   config.gameTime = Math.max(120, parseInt(document.getElementById("gameTime").value) * 60);
+  
   playSound("start");
   initGame();
 }
@@ -186,6 +253,15 @@ function startConfiguredGame() {
 // Game Setup
 // =====================
 function initGame() {
+  // First, make sure all previous game resources are cleared
+  clearAllTimers();
+  gameRunning = false;
+  gameActive = false;
+  
+  // Reset keyboard state
+  keys = {};
+  
+  // Then initialize a fresh game state
   showScreen("game");
   canvas = document.getElementById("gameCanvas");
   ctx = canvas.getContext("2d");
@@ -199,13 +275,15 @@ function initGame() {
   // Calculate the movement boundary (40% of bottom screen)
   movementBoundary = canvas.height * 0.6; // Player can only move in bottom 40%
   
+  // Set player with consistent speed
   player = {
-    x: Math.random() * (canvas.width - 60),
-    y: canvas.height * 0.65,
+    x: canvas.width / 2 - 30,
+    y: canvas.height * 0.9,  // Start closer to bottom
     w: 60, h: 40,
-    speed: 6
+    speed: PLAYER_BASE_SPEED
   };
 
+  // Fresh game state
   bullets = [];
   enemyBullets = [];
   enemies = [];
@@ -214,14 +292,21 @@ function initGame() {
   timeLeft = config.gameTime;
   timeElapsed = 0;
   speedUps = 0;
-  enemySpeed = 1;
+  enemySpeed = INITIAL_ENEMY_SPEED;
   enemyDirection = 1;
-  gameRunning = true;
   canShoot = true;
-
+  enemyBulletDelay = true;
+  
+  // Create enemies
   createEnemies();
+  
+  // Set up timer and start game
+  gameRunning = true;
+  gameActive = true;
   setupTimer();
   updateUI();
+  
+  // Start game loop
   requestAnimationFrame(gameLoop);
 }
 
@@ -229,12 +314,12 @@ function createEnemies() {
   // Create 20 enemies in a 4x5 formation
   const rows = 4, cols = 5, spacing = 80, startX = 300, startY = 80;
   
-  // הגדרת צבעים שונים לכל שורה
+  // Define different colors for each row
   const rowColors = [
-    "#ff0000", 
-    "#ffff00", 
-    "#00ff00", 
-    "#0099ff"  
+    "#ff0000", // Row 0 (top row) - 20 points - Red
+    "#ffff00", // Row 1 - 15 points - Yellow
+    "#00ff00", // Row 2 - 10 points - Green
+    "#0099ff"  // Row 3 (bottom row) - 5 points - Blue
   ];
   
   for (let r = 0; r < rows; r++) {
@@ -255,14 +340,19 @@ function createEnemies() {
 // Timer and Score UI
 // =====================
 function setupTimer() {
-  clearInterval(timerInterval);
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+  
   timerInterval = setInterval(() => {
+    if (!gameRunning) return; // Skip if game is not running
+    
     timeLeft--;
     timeElapsed++;
     
     // Speed up enemies every 5 seconds, max 4 times
     if (timeElapsed % 5 === 0 && speedUps < 4) {
-      enemySpeed += 0.5;
+      enemySpeed += 0.5; // Linear acceleration
       speedUps++;
     }
     
@@ -370,22 +460,54 @@ function drawBullets() {
 }
 
 function movePlayer() {
-  // Restrict player movement to bottom 40% of screen
-  if (keys["ArrowLeft"] && player.x > 0) player.x -= player.speed;
-  if (keys["ArrowRight"] && player.x + player.w < canvas.width) player.x += player.speed;
-  if (keys["ArrowUp"] && player.y > movementBoundary) player.y -= player.speed;
-  if (keys["ArrowDown"] && player.y + player.h < canvas.height) player.y += player.speed;
-  if (keys[shootKey] && canShoot) shoot();
+  // Use constant player speed (from global constant)
+  let dx = 0, dy = 0;
+  
+  // Calculate movement direction
+  if (keys["ArrowLeft"]) dx -= PLAYER_BASE_SPEED;
+  if (keys["ArrowRight"]) dx += PLAYER_BASE_SPEED;
+  if (keys["ArrowUp"]) dy -= PLAYER_BASE_SPEED;
+  if (keys["ArrowDown"]) dy += PLAYER_BASE_SPEED;
+  
+  // Normalize diagonal movement to prevent faster diagonal speed
+  if (dx !== 0 && dy !== 0) {
+    dx *= 0.7071; // Math.cos(45 degrees)
+    dy *= 0.7071; // Math.sin(45 degrees)
+  }
+  
+  // Apply movement with boundary checking
+  const newX = player.x + dx;
+  const newY = player.y + dy;
+  
+  // Check horizontal boundaries
+  if (newX >= 0 && newX + player.w <= canvas.width) {
+    player.x = newX;
+  }
+  
+  // Check vertical boundaries (only allowing movement in bottom 40%)
+  if (newY >= movementBoundary && newY + player.h <= canvas.height) {
+    player.y = newY;
+  }
+  
+  // Shooting - handle case insensitivity
+  if ((keys[shootKey] || keys[shootKey.toLowerCase()] || keys[shootKey.toUpperCase()]) && canShoot) {
+    shoot();
+  }
 }
 
 function moveEnemies() {
+  if (!gameRunning) return;
+  
   let hitWall = false;
+  
+  // Calculate current speed (capped at reasonable maximum)
+  const currentEnemySpeed = Math.min(enemySpeed, MAX_ENEMY_SPEED);
   
   // Check if any enemy hit a wall
   enemies.forEach(e => {
     if (e.alive) {
-      if ((e.x + e.w + enemySpeed * enemyDirection > canvas.width) || 
-          (e.x + enemySpeed * enemyDirection < 0)) {
+      if ((e.x + e.w + currentEnemySpeed * enemyDirection > canvas.width) || 
+          (e.x + currentEnemySpeed * enemyDirection < 0)) {
         hitWall = true;
       }
     }
@@ -394,13 +516,13 @@ function moveEnemies() {
   // Change direction if hit wall
   if (hitWall) enemyDirection *= -1;
   
-  // Move all enemies
+  // Move all enemies at controlled speed
   enemies.forEach(e => { 
-    if (e.alive) e.x += enemySpeed * enemyDirection; 
+    if (e.alive) e.x += currentEnemySpeed * enemyDirection; 
   });
   
   // Enemy shooting logic
-  if (enemyBulletDelay) {
+  if (enemyBulletDelay && gameRunning) {
     let aliveEnemies = enemies.filter(e => e.alive);
     if (aliveEnemies.length > 0) {
       // Pick random enemy to shoot
@@ -409,50 +531,84 @@ function moveEnemies() {
       // Only allow new enemy bullet when previous one traveled 3/4 of screen
       let canEnemyShoot = true;
       if (enemyBullets.length > 0) {
-        // Calculate progress of furthest bullet
-        let maxProgress = 0;
-        enemyBullets.forEach(bullet => {
-          let progress = bullet.y / canvas.height;
-          if (progress > maxProgress) maxProgress = progress;
-        });
-        
+        // Find the bullet that's traveled furthest down the screen
+        let furthestBullet = enemyBullets.reduce((prev, current) => 
+          (current.y > prev.y) ? current : prev, enemyBullets[0]);
+          
         // Only allow new shot if furthest bullet passed 3/4 of screen
-        if (maxProgress < 0.75) canEnemyShoot = false;
+        canEnemyShoot = (furthestBullet.y / canvas.height) >= 0.75;
       }
       
       if (canEnemyShoot) {
+        // Control bullet speed based on speedUps but cap it
+        const bulletSpeed = Math.min(
+          INITIAL_ENEMY_BULLET_SPEED + speedUps * 0.5,
+          MAX_ENEMY_BULLET_SPEED
+        );
+        
         enemyBullets.push({ 
           x: shooter.x + shooter.w / 2, 
           y: shooter.y + shooter.h, 
           w: 4, h: 12, 
-          speed: 3 + speedUps // Speed increases with speedUps
+          speed: bulletSpeed
         });
-        playSound("enemyShoot");
+        
+        if (gameActive) {
+          playSound("enemyShoot");
+        }
+        
         enemyBulletDelay = false;
-        setTimeout(() => enemyBulletDelay = true, 800 - speedUps * 100); // Faster recharge with speed ups
+        
+        // Store the timer ID - adjust delay based on speedUps but ensure minimum time
+        const rechargeTime = Math.max(800 - speedUps * 100, 400); // Minimum 400ms delay
+        const timerId = setTimeout(() => {
+          if (gameRunning) {
+            enemyBulletDelay = true;
+          }
+        }, rechargeTime);
+        soundTimers.push(timerId);
       }
     }
   }
 }
 
 function updateBullets() {
+  // Move bullets
   bullets.forEach(b => b.y -= b.speed);
   enemyBullets.forEach(b => b.y += b.speed);
+  
+  // Remove bullets that are off-screen
   bullets = bullets.filter(b => b.y > 0);
   enemyBullets = enemyBullets.filter(b => b.y < canvas.height);
 }
 
 function shoot() {
-  if (canShoot) {
+  if (canShoot && gameRunning) {
+    // Optional: Limit maximum bullets on screen
+    if (MAX_PLAYER_BULLETS > 0 && bullets.length >= MAX_PLAYER_BULLETS) {
+      return; // Don't allow more than MAX_PLAYER_BULLETS
+    }
+    
     bullets.push({ 
       x: player.x + player.w / 2 - 2, 
       y: player.y, 
-      w: 4, h: 12, // Make the bullet slightly larger
-      speed: 7 
+      w: 4, h: 12,
+      speed: PLAYER_BULLET_SPEED
     });
-    playSound("shoot");
+    
+    if (gameActive) {
+      playSound("shoot");
+    }
+    
     canShoot = false;
-    setTimeout(() => canShoot = true, 300); // Cooldown
+    
+    // Store the timer ID with longer cooldown
+    const timerId = setTimeout(() => {
+      if (gameRunning) {
+        canShoot = true;
+      }
+    }, PLAYER_SHOOT_COOLDOWN);
+    soundTimers.push(timerId);
   }
 }
 
@@ -478,7 +634,10 @@ function checkCollisions() {
         // Row 3 (bottom row) = 5 points
         score += (4 - e.row) * 5;
         
-        playSound("explode");
+        if (gameActive) {
+          playSound("explode");
+        }
+        
         updateUI();
         break;
       }
@@ -498,12 +657,14 @@ function checkCollisions() {
       
       // Reset player position to bottom with random X
       player.x = Math.random() * (canvas.width - 60);
-      player.y = canvas.height * 0.65;
+      player.y = canvas.height * 0.9;
       
       // Clear all enemy bullets
       enemyBullets = [];
       
-      playSound("bomb");
+      if (gameActive) {
+        playSound("bomb");
+      }
       
       if (lives <= 0) {
         endGame("death");
@@ -522,9 +683,10 @@ window.addEventListener("keydown", (e) => {
   if (e.key === "Home") {
     // Stop the game loop
     gameRunning = false;
+    gameActive = false;
     
-    // Clear timer interval
-    clearInterval(timerInterval);
+    // Clear all timers
+    clearAllTimers();
     
     // Stop all sounds
     stopAllSounds(); 
@@ -556,7 +718,10 @@ window.addEventListener("keypress", function(e) {
 function endGame(reason) {
   if (!gameRunning) return; 
   gameRunning = false;
-  clearInterval(timerInterval);
+  gameActive = false;
+  
+  // Clear all timers
+  clearAllTimers();
 
   // Stop all sounds including background music
   stopAllSounds();
@@ -564,7 +729,7 @@ function endGame(reason) {
   let message = "";
   if (reason === "death") {
     message = "You Lost!";
-    playSound("bomb");
+    playSound("gameOver"); // Use gameOver sound instead of bomb
   }
   else if (reason === "time" && score < 100) {
     message = "You can do better!";
@@ -578,24 +743,36 @@ function endGame(reason) {
     message = "Winner!";
     playSound("bonus");
   }
-  showGameNotification(`${message}\nScore: ${score}`);
-
+  
   if (currentUser) {
     if (!userScores[currentUser]) userScores[currentUser] = [];
     userScores[currentUser].push(score);
     currentScore = score;
   }
+  
+  // Delay notification slightly to ensure game stops properly
+  setTimeout(() => {
+    showGameNotification(`${message}\nScore: ${score}`);
+  }, 100);
 }
 
 function showHighScores() {
   const scores = userScores[currentUser] || [];
   const sorted = [...scores].sort((a, b) => b - a);
   const pos = sorted.indexOf(currentScore) + 1;
+  
+  let scoresText = "High Scores:\n";
+  if (sorted.length === 0) {
+    scoresText += "No scores yet";
+  } else {
+    scoresText += sorted.slice(0, 5).map((s, i) => `${i+1}. ${s}`).join("\n");
+  }
+  scoresText += `\n\nYour position: ${pos}`;
 
-  showGameNotification(`High Scores:\n${sorted.slice(0, 5).join("\n")}\nYour position: ${pos}`);
+  showGameNotification(scoresText);
   setTimeout(() => {
     showScreen("welcome");
-  }, 100);
+  }, 500);
 }
 
 function showGameNotification(message) {
@@ -622,6 +799,14 @@ function startNewGame() {
     showGameNotification("Please login to play.");
     return;
   }
+  
+  // Ensure complete reset of game state
+  clearAllTimers();
+  gameRunning = false;
+  gameActive = false;
+  keys = {};
+  
+  // Go to configuration screen
   showScreen("config");
 }
 
@@ -657,21 +842,160 @@ function populateDateDropdowns() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', populateDateDropdowns);
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize date dropdowns
+  populateDateDropdowns();
+  
+  // Ensure the game starts in a clean state
+  clearAllTimers();
+  stopAllSounds();
+});
 
 // =====================
 // Restart & Game Over
 // =====================
 function restartGame() {
+  // Clear all timers
+  clearAllTimers();
+  
   // Stop all sounds before restarting
   stopAllSounds();
   
-  player.x = canvas.width / 2 - 30;
-  player.y = canvas.height * 0.65;
+  // Reset game state
+  gameRunning = false;
+  gameActive = false;
+  keys = {};
+  
+  // Start a fresh game
   initGame();
 }
 
 function goToMainMenu() {
+  // Clear all timers
+  clearAllTimers();
+  
+  // Stop all sounds
   stopAllSounds();
+  gameActive = false;
+  
   showScreen("welcome");
 }
+
+// =====================
+// Space Background with Particle Effects
+// =====================
+let stars = [];
+const STAR_COUNT = 300;
+let particleContainer;
+let animationId = null;
+
+function setupStarfield() {
+  // Create particle container if it doesn't exist
+  if (!document.getElementById('particles-container')) {
+    particleContainer = document.createElement('div');
+    particleContainer.id = 'particles-container';
+    document.body.appendChild(particleContainer);
+  } else {
+    particleContainer = document.getElementById('particles-container');
+  }
+  
+  // Clear existing stars
+  particleContainer.innerHTML = '';
+  stars = [];
+  
+  // Create stars
+  for (let i = 0; i < STAR_COUNT; i++) {
+    createStar();
+  }
+  
+  // Start animation
+  if (animationId) {
+    cancelAnimationFrame(animationId);
+  }
+  animateStars();
+}
+
+function createStar() {
+  const star = document.createElement('div');
+  star.className = 'star';
+  
+  // Random position
+  const x = Math.random() * window.innerWidth;
+  const y = Math.random() * window.innerHeight;
+  
+  // Random size (some stars bigger than others)
+  const size = Math.random() * 2 + 1; // Reduce max size slightly for performance
+  
+  // Random opacity for twinkling effect
+  const opacity = Math.random() * 0.5 + 0.3;
+  
+  // Random speed (slower stars appear further away)
+  const speed = Math.random() * 0.2 + 0.1; // Slightly reduce speed range
+  
+  // Use transform instead of top/left
+  star.style.transform = `translate(${x}px, ${y}px)`;
+  star.style.width = `${size}px`;
+  star.style.height = `${size}px`;
+  star.style.opacity = opacity;
+  
+  // Store star properties
+  const starObj = {
+    element: star,
+    x: x,
+    y: y,
+    speed: speed
+  };
+  
+  stars.push(starObj);
+  particleContainer.appendChild(star);
+}
+
+function animateStars() {
+  stars.forEach(star => {
+    // Move star down
+    star.y += star.speed;
+    
+    // Reset position if star moves off screen
+    if (star.y > window.innerHeight) {
+      star.y = -5;
+      star.x = Math.random() * window.innerWidth;
+    }
+    
+    // Update DOM element position
+    star.element.style.top = `${star.y}px`;
+  });
+  
+  // Continue animation
+  animationId = requestAnimationFrame(animateStars);
+}
+
+// Set up the starfield when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize date dropdowns
+  populateDateDropdowns();
+  
+  // Set up starfield
+  setupStarfield();
+  
+  // Ensure the game starts in a clean state
+  clearAllTimers();
+  stopAllSounds();
+});
+
+// Update showScreen function to ensure particles continue 
+// Override the existing showScreen function
+const originalShowScreen = showScreen;
+showScreen = function(id) {
+  originalShowScreen(id);
+  
+  // If entering game mode, ensure particles are visible behind the game
+  if (id === "game") {
+    particleContainer.style.zIndex = "0";
+  }
+};
+
+// Make sure stars are responsive to window resize
+window.addEventListener('resize', function() {
+  // Reset starfield when window is resized
+  setupStarfield();
+});

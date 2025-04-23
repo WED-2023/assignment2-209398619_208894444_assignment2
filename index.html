@@ -37,25 +37,25 @@
 <!-- REGISTER SCREEN -->
 <div id="register" class="screen">
     <h2>Register</h2>
-    <form onsubmit="return registerUser(event)">
+    <form id="regForm" onsubmit="return registerUser(event)" autocomplete="off">
       <div class="form-row">
-        <input type="text" id="regUsername" placeholder="Username" required />
-        <input type="password" id="regPassword" placeholder="Password" required />
-        <input type="password" id="verifyPassword" placeholder="Verify Password" required />
+        <input type="text" id="regUsername" placeholder="Username" required autocomplete="off" />
+        <input type="password" id="regPassword" placeholder="Password" required autocomplete="off" />
+        <input type="password" id="verifyPassword" placeholder="Verify Password" required autocomplete="off" />
       </div>
       
       <div class="form-row">
-        <input type="text" id="firstName" placeholder="First Name" required />
-        <input type="text" id="lastName" placeholder="Last Name" required />
-        <input type="email" id="email" placeholder="Email" required />
+        <input type="text" id="firstName" placeholder="First Name" required autocomplete="off" />
+        <input type="text" id="lastName" placeholder="Last Name" required autocomplete="off" />
+        <input type="email" id="email" placeholder="Email" required autocomplete="off" />
       </div>
       
       <div class="date-container">
         <label>Date of Birth:</label>
         <div class="date-inputs">
-          <select id="dobDay"></select>
-          <select id="dobMonth"></select>
-          <select id="dobYear"></select>
+          <select id="dobDay" autocomplete="off"></select>
+          <select id="dobMonth" autocomplete="off"></select>
+          <select id="dobYear" autocomplete="off"></select>
         </div>
       </div>
       
@@ -69,9 +69,9 @@
 <!-- LOGIN SCREEN -->
 <div id="login" class="screen">
     <h2>Login</h2>
-    <form onsubmit="return loginUser(event)">
-    <input type="text" id="loginUsername" placeholder="Username" required />
-    <input type="password" id="loginPassword" placeholder="Password" required />
+    <form onsubmit="return loginUser(event)" autocomplete="off">
+    <input type="text" id="loginUsername" placeholder="Username" required autocomplete="off" />
+    <input type="password" id="loginPassword" placeholder="Password" required autocomplete="off" />
     <button type="submit">Login</button>
     </form>
     <p id="loginMsg" class="message"></p>
@@ -83,7 +83,7 @@
     <div class="config-container">
         <div class="config-item">
         <label for="shootKey">Choose shooting key:</label>
-        <select id="shootKey">
+        <select id="shootKey" autocomplete="off">
             <option value=" ">Space</option>
             <script>
             // Dynamically add all letter options (A-Z)
@@ -97,7 +97,7 @@
 
         <div class="config-item">
         <label for="gameTime">Game Time (min):</label>
-        <input type="number" id="gameTime" min="2" value="2" />
+        <input type="number" id="gameTime" min="2" value="2" autocomplete="off" />
         </div>
 
         <button class="start-btn" onclick="startConfiguredGame()">Start Game</button>
@@ -129,42 +129,62 @@
 
 
 <!-- ABOUT MODAL -->
+<!-- Replace the current modal content with this enhanced version -->
 <div id="aboutModal" class="modal">
-<div class="modal-content">
+  <div class="modal-content">
     <span class="close" onclick="closeModal()">&times;</span>
     <h2>About the Game</h2>
 
     <p><strong>Creators:</strong> Raz Ganon (208894444), Keren Londner (209398619)</p>
-    <p><strong>Template Used:</strong> No</p>
-    <p><strong>jQuery Plugin Used:</strong> No</p>
+    <p><strong>Template Used:</strong> No - This game was built from scratch without using any templates.</p>
+    <p><strong>jQuery Plugin Used:</strong> No - The game uses vanilla JavaScript for all functionality.</p>
 
     <p><strong>Difficulties Encountered:</strong></p>
     <ul>
-    <li>Managing transitions between game screens and UI states</li>
-    <li>Synchronizing canvas rendering with HTML-based game UI</li>
-    <li>Implementing diagonal movement for both player and enemies</li>
-    <li>Handling real-time scoring and persistent user data</li>
-    <li>Creating the acceleration system for enemies</li>
+      <li><strong>Managing transitions between game screens and UI states</strong> - Creating smooth transitions between different game screens while maintaining state information and preventing memory leaks.</li>
+      <li><strong>Synchronizing canvas rendering with HTML-based game UI</strong> - Ensuring the canvas-based game elements render properly alongside HTML UI components without conflicts or performance issues.</li>
+      <li><strong>Implementing diagonal movement for both player and enemies</strong> - Calculating proper vector-based movement to allow fluid diagonal motion while normalizing speeds to prevent faster diagonal movement.</li>
+      <li><strong>Handling real-time scoring and persistent user data</strong> - Storing and retrieving user scores while maintaining session data across different game instances.</li>
+      <li><strong>Creating the acceleration system for enemies</strong> - Designing a balanced system where enemies gradually increase in speed without becoming impossible to defeat, and ensuring the acceleration works consistently across different game sessions.</li>
+      <li><strong>Sound management across screens</strong> - Ensuring sounds play correctly and stop appropriately when navigating between different game screens.</li>
+      <li><strong>Collision detection optimization</strong> - Implementing efficient collision detection that works with multiple moving objects without causing performance issues.</li>
+      <li><strong>Cross-browser compatibility</strong> - Ensuring the game runs smoothly in Chrome with a minimum resolution of 1366x768 while maintaining responsive design principles.</li>
     </ul>
 
     <p><strong>Game Instructions:</strong></p>
     <ul>
-    <li>Use arrow keys (↑ ↓ ← →) to move. Diagonal movement is supported.</li>
-    <li>Shoot using the configured key (space or any chosen letter)</li>
-    <li>Earn points based on the enemy row:
+      <li>Use arrow keys (↑ ↓ ← →) to move. Diagonal movement is supported for more fluid gameplay.</li>
+      <li>Shoot using the configured key (space or any chosen letter) - The shooting key can be customized in the game configuration screen.</li>
+      <li>Earn points based on the enemy row:
         <ul>
-        <li>Bottom row (4th): 5 points</li>
-        <li>3rd row: 10 points</li>
-        <li>2nd row: 15 points</li>
-        <li>Top row (1st): 20 points</li>
+          <li>Bottom row (4th): 5 points</li>
+          <li>3rd row: 10 points</li>
+          <li>2nd row: 15 points</li>
+          <li>Top row (1st): 20 points</li>
         </ul>
-    </li>
-    <li>You have 3 lives — getting hit 3 times ends the game</li>
-    <li>Enemy ships speed up every 5 seconds (up to 4 times)</li>
-    <li>You can only move in the bottom 40% of the screen</li>
-    <li>Reach the time limit or destroy all enemies to win</li>
+      </li>
+      <li>You have 3 lives — getting hit 3 times ends the game</li>
+      <li>Enemy ships speed up every 5 seconds (up to 4 times) to increase the challenge as you play</li>
+      <li>You can only move in the bottom 40% of the screen, simulating a defense position</li>
+      <li>Enemy bullets can only be fired when the previous bullet has traversed 3/4 of the screen</li>
+      <li>You can win by either:
+        <ul>
+          <li>Reaching the time limit with a score above 100</li>
+          <li>Destroying all enemy ships before the time limit</li>
+        </ul>
+      </li>
     </ul>
-</div>
+    
+    <p><strong>Technical Implementation:</strong></p>
+    <ul>
+      <li>Built with HTML5 Canvas for rendering game elements</li>
+      <li>Uses JavaScript for game logic and animations</li>
+      <li>Implements object-oriented design patterns for game entities</li>
+      <li>Features responsive design that adapts to various screen sizes above the minimum resolution</li>
+      <li>Includes particle effects for enhanced visual experience</li>
+      <li>Custom collision detection system for precise hit detection</li>
+    </ul>
+  </div>
 </div>
   
 

@@ -1,4 +1,5 @@
 /* General Reset and Page Setup */
+/* Updated body background */
 body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
@@ -7,9 +8,9 @@ body {
   overflow-x: hidden;
   min-width: 1366px;
   min-height: 768px;
-  background-image: url("assets/images/background.jpg");
   background-size: cover;
   background-attachment: fixed;
+  position: relative;
 }
 
 h1, h2, p {
@@ -50,7 +51,7 @@ header h1 {
 
 /* Logo image styling */
 .logo {
-  height: 80px;
+  height: 200px;
   width: auto;
   border-radius: 50%;
   background-color: white;
@@ -99,15 +100,18 @@ nav button:hover {
 }
 
 /* Screens */
+/* Update the screen styles for better visibility */
 .screen {
   display: none;
   padding: 30px;
   text-align: center;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.8); /* More opacity for better readability */
   border-radius: 15px;
   margin: 20px auto;
   max-width: 1200px;
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+  position: relative;
+  z-index: 1;
 }
 
 .screen.active {
@@ -276,18 +280,21 @@ form button:hover {
   padding: 0;
   max-width: 100%;
   margin: 0;
+  background-color: transparent;
   background: none;
   box-shadow: none;
   position: relative;
 }
 
+/* Canvas styling update to make background transparent */
 #gameCanvas {
   display: block;
   margin: 0 auto;
   border: 2px solid #333;
   box-shadow: 0 0 12px #00f;
-  background-image: url("assets/images/gameBackground.jpg");
-  background-size: cover;
+  background-color: transparent; /* Make canvas background transparent */
+  position: relative;
+  z-index: 1;
 }
 
 #gameUI {
@@ -516,4 +523,24 @@ footer {
   to {
     box-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff;
   }
+}
+
+/* Particle container */
+#particles-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
 }
