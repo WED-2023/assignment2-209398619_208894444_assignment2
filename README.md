@@ -51,7 +51,9 @@ Sound management system
 # Game Controls
 
 Arrow Keys: Move the spaceship (including diagonal movement)
+
 Configurable Shoot Key: Default is spacebar, but can be changed in the configuration screen
+
 Home Key: Return to the welcome screen at any time
 
 # Scoring System
