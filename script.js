@@ -240,18 +240,37 @@ function setupColorSelection() {
       colorOptions.forEach(opt => opt.classList.remove('selected'));
       this.classList.add('selected');
       config.playerColor = this.getAttribute('data-color');
+      console.log("Selected color:", config.playerColor);
     });
   });
-  
-
-  colorOptions[0].classList.add('selected');
-  config.playerColor = 'red';
+  config.playerColor = null;
 }
 
 // =====================
 // Game Config
 // =====================
 function startConfiguredGame() {
+  console.log("Current playerColor:", config.playerColor);
+  
+  if (!config.playerColor) {
+    const configSection = document.getElementById("config");
+    const errorMsg = document.createElement("p");
+    errorMsg.className = "error-message";
+    errorMsg.textContent = "Please select a spaceship color!";
+    errorMsg.style.color = "#ff5555";
+    errorMsg.style.fontWeight = "bold";
+    errorMsg.style.marginTop = "10px";
+    errorMsg.style.textAlign = "center";
+    errorMsg.style.fontSize = "18px";
+    const existingError = configSection.querySelector(".error-message");
+    if (existingError) {
+      configSection.removeChild(existingError);
+    }
+    configSection.appendChild(errorMsg);
+    playSound("select");
+    return;
+  }
+  
   clearAllTimers();
   gameRunning = false;
   gameActive = false;
@@ -280,21 +299,24 @@ function initGame() {
   showScreen("game");
   canvas = document.getElementById("gameCanvas");
   ctx = canvas.getContext("2d");
+ 
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
    
   playerImage = new Image();
-  playerImage.src = "assets/images/spaceship.png";
+ 
+  playerImage.src = `assets/images/${config.playerColor}.png`;
   
   enemyImage = new Image();
   enemyImage.src = "assets/images/invader.png";
 
   // Calculate the movement boundary (40% of bottom screen)
-  movementBoundary = canvas.height * 0.6; // Player can only move in bottom 40%
+  movementBoundary = canvas.height * 0.6; 
   
   // Set player with consistent speed
   player = {
     x: canvas.width / 2 - 30,
-    y: canvas.height * 0.9,  // Start closer to bottom
-    w: 60, h: 40,
+    y: canvas.height * 0.9,  
+    w: 80, h: 80,
     speed: PLAYER_BASE_SPEED
   };
 
@@ -414,20 +436,23 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 function drawPlayer() {
-  // Always update the player image with the current color
   if (!playerImage) {
     playerImage = new Image();
   }
-  
-  // Always update the image source based on current color
+
   if (config.playerColor) {
     playerImage.src = `assets/images/${config.playerColor}.png`;
   } else {
     playerImage.src = "assets/images/red.png";
   }
-  
-  // Draw the image
-  ctx.drawImage(playerImage, player.x, player.y, player.w, player.h);
+
+  if (playerImage.complete) {
+    ctx.drawImage(playerImage, player.x, player.y, player.w, player.h);
+  } else {
+    playerImage.onload = function() {
+      ctx.drawImage(playerImage, player.x, player.y, player.w, player.h);
+    };
+  }
 }
 
 
