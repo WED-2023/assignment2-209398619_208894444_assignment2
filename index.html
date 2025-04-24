@@ -82,27 +82,55 @@
     <h2>Game Configuration</h2>
     <div class="config-container">
         <div class="config-item">
-        <label for="shootKey">Choose shooting key:</label>
-        <select id="shootKey" autocomplete="off">
-            <option value=" ">Space</option>
-            <script>
-            // Dynamically add all letter options (A-Z)
-            for (let i = 65; i <= 90; i++) {
-                const letter = String.fromCharCode(i);
-                document.write(`<option value="${letter}">${letter}</option>`);
-            }
-            </script>
-        </select>
+            <label for="shootKey">Choose shooting key:</label>
+            <select id="shootKey">
+                <option value=" ">Space</option>
+                <script>
+                // Dynamically add all letter options (A-Z)
+                for (let i = 65; i <= 90; i++) {
+                    const letter = String.fromCharCode(i);
+                    document.write(`<option value="${letter}">${letter}</option>`);
+                }
+                </script>
+            </select>
         </div>
 
         <div class="config-item">
-        <label for="gameTime">Game Time (min):</label>
-        <input type="number" id="gameTime" min="2" value="2" autocomplete="off" />
+            <label for="gameTime">Game Time (min):</label>
+            <input type="number" id="gameTime" min="2" value="2" />
+        </div>
+        
+        <div class="config-item">
+            <label>Spaceship Color:</label>
+            <div class="color-selection">
+                <div class="color-options">
+                    <div class="color-option" data-color="blue">
+                        <img src="assets/images/blue.png" alt="Blue Ship">
+                        <span>Blue</span>
+                    </div>
+                    <div class="color-option" data-color="yellow">
+                        <img src="assets/images/yellow.png" alt="Yellow Ship">
+                        <span>Yellow</span>
+                    </div>
+                    <div class="color-option" data-color="green">
+                        <img src="assets/images/green.png" alt="Green Ship">
+                        <span>Green</span>
+                    </div>
+                    <div class="color-option" data-color="pink">
+                        <img src="assets/images/pink.png" alt="Pink Ship">
+                        <span>Pink</span>
+                    </div>
+                    <div class="color-option" data-color="red">
+                        <img src="assets/images/red.png" alt="Red Ship">
+                        <span>Red</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <button class="start-btn" onclick="startConfiguredGame()">Start Game</button>
     </div>
-    </div>
+</div>
 
 <!-- GAME SCREEN -->
 <div id="game" class="screen">

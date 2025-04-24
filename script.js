@@ -60,15 +60,19 @@ function showScreen(id) {
     gameActive = false;
   }
   
-  // Play selection sound if not on welcome screen
-  if (id !== "welcome") {
-    playSound("select");
-  }
+  // Make sure starfield is visible behind game
+  document.getElementById('particles-container').style.zIndex = "-1";
   
   // Start background music only when entering the game screen
   if (id === "game") {
     playSound("backgroundMusic");
     gameActive = true;
+    
+    // Make sure the game canvas is transparent
+    const canvas = document.getElementById("gameCanvas");
+    if (canvas) {
+      canvas.style.backgroundColor = "transparent";
+    }
   }
 }
 
@@ -229,22 +233,33 @@ function loginUser(event) {
 function showMsg(id, msg) {
   document.getElementById(id).innerText = msg;
 }
+function setupColorSelection() {
+  const colorOptions = document.querySelectorAll('.color-option');
+  colorOptions.forEach(option => {
+    option.addEventListener('click', function() {
+      colorOptions.forEach(opt => opt.classList.remove('selected'));
+      this.classList.add('selected');
+      config.playerColor = this.getAttribute('data-color');
+    });
+  });
+  
+
+  colorOptions[0].classList.add('selected');
+  config.playerColor = 'red';
+}
 
 // =====================
 // Game Config
 // =====================
 function startConfiguredGame() {
-  // Reset any lingering game state
   clearAllTimers();
   gameRunning = false;
   gameActive = false;
   keys = {};
   
-  // Configure the game
   shootKey = document.getElementById("shootKey").value;
   config.shootKey = shootKey;
   config.gameTime = Math.max(120, parseInt(document.getElementById("gameTime").value) * 60);
-  
   playSound("start");
   initGame();
 }
@@ -381,6 +396,10 @@ function updateUI() {
 function gameLoop() {
   if (!gameRunning) return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "rgba(0, 0, 0, 0.2)"; 
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  
   movePlayer();
   moveEnemies();
   updateBullets();
@@ -394,10 +413,23 @@ function gameLoop() {
 
   requestAnimationFrame(gameLoop);
 }
-
 function drawPlayer() {
+  // Always update the player image with the current color
+  if (!playerImage) {
+    playerImage = new Image();
+  }
+  
+  // Always update the image source based on current color
+  if (config.playerColor) {
+    playerImage.src = `assets/images/${config.playerColor}.png`;
+  } else {
+    playerImage.src = "assets/images/red.png";
+  }
+  
+  // Draw the image
   ctx.drawImage(playerImage, player.x, player.y, player.w, player.h);
 }
+
 
 function drawEnemies() {
   enemies.forEach(enemy => {
@@ -845,8 +877,10 @@ function populateDateDropdowns() {
 document.addEventListener('DOMContentLoaded', function() {
   // Initialize date dropdowns
   populateDateDropdowns();
+  setupStarfield();
   
-  // Ensure the game starts in a clean state
+  setupColorSelection();
+ 
   clearAllTimers();
   stopAllSounds();
 });

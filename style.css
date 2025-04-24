@@ -256,6 +256,39 @@ form button:hover {
   font-size: 18px;
   color: #00ffff;
 }
+/* Color selection options styling */
+.color-options {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.color-option {
+  cursor: pointer;
+  border: 3px solid transparent;
+  padding: 5px;
+  border-radius: 5px;
+  transition: all 0.3s;
+}
+
+.color-option img {
+  width: 60px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.color-option span {
+  display: block;
+  margin-top: 5px;
+  color: white;
+}
+
+.color-option.selected {
+  border-color: #00ff00;
+  background-color: rgba(0, 255, 0, 0.2);
+}
+
 
 .start-btn {
   background-color: #00ffff;
