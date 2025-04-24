@@ -316,7 +316,7 @@ function initGame() {
   player = {
     x: canvas.width / 2 - 30,
     y: canvas.height * 0.9,  
-    w: 80, h: 80,
+    w: 60, h: 40,
     speed: PLAYER_BASE_SPEED
   };
 
