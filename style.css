@@ -327,11 +327,9 @@ form button:hover {
   border: 2px solid #333;
   box-shadow: 0 0 12px #00f;
   background-color: transparent;
-  position: relative;
   z-index: 1;
-  width: 90vw;
   height: 80vh;
-  max-width: 1366px;
+
   max-height: 768px;
 }
 
