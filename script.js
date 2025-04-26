@@ -47,6 +47,14 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(div => div.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   currentScreen = id;
+
+   // Hide header for game and config screens
+   const header = document.querySelector('header');
+   if (id === 'game' || id === 'config') {
+     header.style.display = 'none';
+   } else {
+     header.style.display = 'block';
+   }
   
   // Clear any messages on screen change
   document.querySelectorAll('.message').forEach(msg => msg.textContent = "");
@@ -58,6 +66,11 @@ function showScreen(id) {
   if (id !== "game") {
     stopAllSounds();
     gameActive = false;
+  }
+
+  //Play selection sound if not on welcome screen
+  if (id !== "welcome") {
+    playSound("select");
   }
   
   // Make sure starfield is visible behind game
