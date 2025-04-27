@@ -622,3 +622,16 @@ footer {
   border-radius: 8px;
   background-color: #f0f8ff;
 }
+
+
+.screen a {
+  color: #00ffff;
+  text-decoration: none;
+  text-shadow: 0 0 5px #00ffff;
+  transition: all 0.3s ease;
+}
+
+.screen a:hover {
+  color: #00ff66;
+  text-shadow: 0 0 8px #00ff66;
+}
